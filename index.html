@@ -458,7 +458,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
     <div class="linkBody">
       <p class="note" style="margin:0">会議で映す端末（iPadなど）を「スクリーン」、手元のスマホを「リモコン」にすると、スマホの操作がスクリーンに伝わります。スクリーンにすると QRコードが出るので、スマホのカメラで読むだけで つながります。ふだんはページ番号・指の位置・線の情報だけをやり取りします。PDFは「おくる」を押したときだけ、暗号化して送ります（受け取ったらすぐ消えます）。</p>
       <div class="linkField">
-        <label for="fbCode">あいことば（6文字以上・2台で同じものを）</label>
+        <label for="fbCode">あいことば（6文字以上・ひらがなOK・2台で同じものを）</label>
         <div class="linkRow"><input id="fbCode" autocomplete="off" spellcheck="false" maxlength="40"><button class="btn" id="fbNewCode">つくる</button></div>
       </div>
       <details class="linkField" id="fbCfgBox">
@@ -4084,9 +4084,10 @@ function detach(){
   sync.base = null;
 }
 async function setRole(role){
-  const code = $('#fbCode').value.trim();
+  const code = $('#fbCode').value.trim().normalize('NFC');
   sync.err = '';
-  if (role !== 'off' && !/^[A-Za-z0-9_-]{6,40}$/.test(code)){ sync.err = 'あいことばは 英数字6文字以上に してね'; syncStatus(); return false; }
+  /* any letters (hiragana and kanji too); Firebase paths cannot hold . # $ [ ] / or spaces */
+  if (role !== 'off' && !/^[^.#$\[\]\/\s]{6,40}$/u.test(code)){ sync.err = 'あいことばは 6文字以上に してね（ひらがなOK。. # $ [ ] / と スペースは つかえません）'; syncStatus(); return false; }
   store.set('fbcode', code);
   detach();
   sync.role = role; sync.lastP = ''; sync.live = null; sync.partners = 0; sync.mismatch = false;
