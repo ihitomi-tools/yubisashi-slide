@@ -456,12 +456,12 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
   <section class="panel" id="link" hidden aria-label="リモコンでつなぐ">
     <div class="panel-head"><h2>スマホをリモコンにする</h2><button class="btn" data-close>閉じる（Esc）</button></div>
     <div class="linkBody">
-      <p class="note" style="margin:0">会議で映す端末（iPadなど）を「スクリーン」、手元のスマホを「リモコン」にすると、スマホの操作がスクリーンに伝わります。スクリーンにすると QRコードが出るので、スマホのカメラで読むだけで つながります。ふだんはページ番号・指の位置・線の情報だけをやり取りします。PDFは「おくる」を押したときだけ、暗号化して送ります（受け取ったらすぐ消えます）。</p>
-      <div class="linkField">
+      <p class="note" style="margin:0">会議で映す端末（iPadなど）を「スクリーン」、手元のスマホを「リモコン」にすると、スマホの操作がスクリーンに伝わります。スクリーンにすると QRコードが出るので、スマホのカメラで読むだけで つながります（合言葉や設定の入力はいりません）。ふだんはページ番号・指の位置・線の情報だけをやり取りします。PDFは「おくる」を押したときだけ、暗号化して送ります（受け取ったらすぐ消えます）。</p>
+      <div class="linkField" hidden>
         <label for="fbCode">あいことば（6文字以上・ひらがなOK・2台で同じものを）</label>
         <div class="linkRow"><input id="fbCode" autocomplete="off" spellcheck="false" maxlength="40"><button class="btn" id="fbNewCode">つくる</button></div>
       </div>
-      <details class="linkField" id="fbCfgBox">
+      <details class="linkField" id="fbCfgBox" hidden>
         <summary>Firebaseの設定（最初の1回だけ）</summary>
         <label for="fbCfg">Firebaseの画面に出る <code>const firebaseConfig = { … }</code> をそのまま貼ってください。この端末の中だけに保存します。</label>
         <textarea id="fbCfg" rows="6" spellcheck="false"></textarea>
@@ -475,6 +475,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
       <p class="sendAsk" id="sendAsk" hidden>リモコンと つながったよ！ いま開いているPDFを リモコンにも おくる？</p>
       <div class="linkBtns">
         <button class="btn" id="fbSend" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 14h6M13 11l3 3-3 3"/></svg>いまの PDFを あいてに おくる</button>
+        <button class="btn" id="qrNew" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg>QRコードを つくりなおす（前のリモコンは きれます）</button>
         <button class="btn" id="qrShow" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>QRコードを もう一度 だす</button>
         <button class="btn" id="roleScreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>この画面を スクリーンにする</button>
         <button class="btn" id="roleRemote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/></svg>この画面を リモコンにする</button>
@@ -4047,7 +4048,7 @@ function syncStatus(){
   let t;
   if (sync.err) t = sync.err;
   else if (sync.role === 'off') t = 'つないでいません';
-  else if (sync.role === 'remote') t = sync.partners ? 'リモコン中：スクリーンと つながっています' : 'リモコン中：スクリーンを さがしています…（もう1台でも 同じあいことばで スクリーンにしてね）';
+  else if (sync.role === 'remote') t = sync.partners ? 'リモコン中：スクリーンと つながっています' : 'リモコン中：スクリーンを さがしています…（スクリーンの QRコードを よみとってね）';
   else t = sync.partners ? 'スクリーン中：リモコンと つながっています' : 'スクリーン中：リモコンを まっています…';
   if (sync.role === 'screen' && sync.mismatch) t += '／リモコンと ちがうPDFみたい';
   el.textContent = t;
@@ -4065,9 +4066,19 @@ function parseConfig(text){
   try { const o = JSON.parse(j); return o && o.apiKey && o.databaseURL ? o : (o && o.apiKey ? o : null); } catch(e){ return null; }
 }
 let fbApp = null;
+const DEFAULT_CFG = {
+  apiKey: 'AIzaSyDfmvT7F-ueol7R3cNdb0I8t50rUpHoQ_o',
+  authDomain: 'yubisashi-slide.firebaseapp.com',
+  databaseURL: 'https://yubisashi-slide-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId: 'yubisashi-slide',
+  storageBucket: 'yubisashi-slide.firebasestorage.app',
+  messagingSenderId: '550296460013',
+  appId: '1:550296460013:web:a64a4b6a48b8e63af34ae4'
+};
+const fbConfig = () => store.get('fbcfg', null) || DEFAULT_CFG;
 async function fbReady(){
   if (!window.firebase) throw { code: 'no_sdk' };
-  const cfg = store.get('fbcfg', null);
+  const cfg = fbConfig();
   if (!cfg) throw { code: 'no_config' };
   if (!cfg.databaseURL) throw { code: 'no_database_url' };
   if (!fbApp){
@@ -4168,7 +4179,7 @@ async function setRole(role){
 }
 function newCode(){
   const abc = 'abcdefghjkmnpqrstuvwxyz23456789'; let c = '';
-  const r = crypto.getRandomValues(new Uint32Array(8));
+  const r = crypto.getRandomValues(new Uint32Array(16));
   for (const v of r) c += abc[v % abc.length];
   return c;
 }
@@ -4178,7 +4189,6 @@ $('#fbCode').addEventListener('input', () => { sync.key = null; });
 {
   const cfg = store.get('fbcfg', null);
   $('#fbCfgState').textContent = cfg ? '保存ずみ（' + String(cfg.projectId || '').slice(0, 40) + '）' : 'まだ 保存されていません';
-  if (!cfg) $('#fbCfgBox').open = true;
 }
 $('#fbSave').onclick = () => {
   const cfg = parseConfig($('#fbCfg').value);
@@ -4190,7 +4200,9 @@ $('#fbSave').onclick = () => {
 $('#roleScreen').onclick = async () => {
   if (await setRole('screen')){ toast(''); showQR(); }
 };
+$('#qrNew').onclick = async () => { $('#fbCode').value = newCode(); sync.key = null; if (await setRole('screen')) showQR(); };
 $('#roleRemote').onclick = async () => {
+  if (!keyFor($('#fbCode').value.trim(), false)){ toast('スクリーンに出る QRコードを、スマホの カメラで よみとってね', 5000); return; }
   if (await setRole('remote')){ closePanels(); if (sync.partners) return; if (game && game.on) game.say('リモコン モード 発動！ スクリーンを さがしているぞ…'); else toast('リモコンに なりました'); }
 };
 $('#roleOff').onclick = () => { setRole('off'); closePanels(); toast('つなぐのを やめました'); };
@@ -4218,7 +4230,7 @@ function roleUI(){
   const on = sync.role !== 'off';
   app.classList.toggle('remotePad', sync.role === 'remote');
   $('#fbSend').hidden = !on; $('#gmSend').hidden = !on; $('#giSend').hidden = !on;
-  $('#qrShow').hidden = sync.role !== 'screen';
+  $('#qrShow').hidden = sync.role !== 'screen'; $('#qrNew').hidden = sync.role !== 'screen';
   if (sync.role !== 'screen'){ $('#qrBox').hidden = true; }
   $('#sendAsk').hidden = true; $('#fbSend').classList.remove('hot');
   requestAnimationFrame(() => { layout(); if (game) game.layout(); });
@@ -4226,9 +4238,10 @@ function roleUI(){
 
 /* ---------- QR code: opens the app on the phone as a remote, with settings, code and key ---------- */
 function joinUrl(){
-  const cfg = store.get('fbcfg', {}) || {};
-  const payload = { v: 1, c: $('#fbCode').value.trim(), k: sync.key ? b64.enc(sync.key) : '',
-    f: { a: cfg.apiKey, d: cfg.authDomain, u: cfg.databaseURL, p: cfg.projectId, i: cfg.appId } };
+  const cfg = fbConfig();
+  const payload = { v: 1, c: $('#fbCode').value.trim(), k: sync.key ? b64.enc(sync.key) : '' };
+  if (cfg.apiKey !== DEFAULT_CFG.apiKey || cfg.databaseURL !== DEFAULT_CFG.databaseURL)
+    payload.f = { a: cfg.apiKey, d: cfg.authDomain, u: cfg.databaseURL, p: cfg.projectId, i: cfg.appId };
   const bytes = new TextEncoder().encode(JSON.stringify(payload));
   return location.origin + location.pathname + '#join=' + toUrl(b64.enc(bytes));
 }
@@ -4246,11 +4259,11 @@ async function joinFromHash(){
   history.replaceState(null, '', location.pathname + location.search);
   let o;
   try { o = JSON.parse(new TextDecoder().decode(b64.dec(fromUrl(m[1])))); } catch(e){ toast('QRコードを 読み取れませんでした'); return; }
-  if (!o || !o.c || !o.f || !o.f.a){ toast('QRコードの 中身が たりません'); return; }
-  const cfg = { apiKey: o.f.a, authDomain: o.f.d, databaseURL: o.f.u, projectId: o.f.p, appId: o.f.i };
-  const old = store.get('fbcfg', null);
-  if (fbApp && old && (old.apiKey !== cfg.apiKey || old.databaseURL !== cfg.databaseURL)){ toast('設定が かわったので、ページを 開きなおしてね'); }
-  store.set('fbcfg', cfg);
+  if (!o || !o.c || !o.k){ toast('QRコードの 中身が たりません'); return; }
+  const cfg = o.f && o.f.a ? { apiKey: o.f.a, authDomain: o.f.d, databaseURL: o.f.u, projectId: o.f.p, appId: o.f.i } : DEFAULT_CFG;
+  const old = fbConfig();
+  if (fbApp && (old.apiKey !== cfg.apiKey || old.databaseURL !== cfg.databaseURL)){ toast('設定が かわったので、ページを 開きなおしてね'); }
+  if (cfg === DEFAULT_CFG) store.set('fbcfg', null); else store.set('fbcfg', cfg);
   $('#fbCode').value = o.c;
   if (o.k){ sync.key = b64.dec(o.k); store.set('fbkey', { code: o.c, k: o.k }); }
   $('#fbCfgState').textContent = '保存ずみ（' + String(cfg.projectId || '').slice(0, 40) + '）';
