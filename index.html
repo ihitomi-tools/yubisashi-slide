@@ -270,7 +270,27 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 #app.short #padHint{display:none}
 #app.short .gtlGrid button{min-height:26px}
 #app.short .gtlColors button{width:19px;height:19px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}.bagIco,.gtoolList{animation:none!important}#gChick.hop,#gTimeBar.over{animation:none}}
+.gicons{display:none}
+#app.mland .gtoolList{bottom:auto;box-shadow:0 6px 0 #070a16}
+#app.mland .gtlGrid button{min-height:34px}
+#app.mland .gicons{display:grid;grid-column:2;grid-row:3;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:5px;align-content:start;overflow-y:auto;min-height:0}
+#app.mland .gsub{display:none}
+.gib{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:46px;background:#1b2242;border:1px solid #3a4470;border-radius:8px;color:#dfe3ee;font:inherit;font-size:9.5px;cursor:pointer;padding:2px 0;white-space:nowrap}
+.gib svg{width:20px;height:20px;image-rendering:pixelated}
+.gib:active{transform:translateY(1px)}
+.gib.lp.pressing{background:linear-gradient(90deg,rgba(255,201,60,.35) var(--lp,0%),#1b2242 var(--lp,0%))}
+.padTools .inkT[hidden]{display:none}
+#gErase[aria-pressed="true"]{border-color:#ffc93c;color:#ffc93c;background:#2c2a2a}
+.gsay{cursor:pointer;-webkit-user-select:none;user-select:none}
+#gChick.wiggle{animation:wiggle .5s ease}
+#gChick.spin{animation:spin .6s ease}
+#gChick.squish{animation:squish .45s ease}
+#gChick.bounce{animation:bounce .7s ease}
+@keyframes wiggle{20%{transform:rotate(-14deg)}40%{transform:rotate(12deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(5deg)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes squish{30%{transform:scale(1.25,.7)}60%{transform:scale(.85,1.2)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}20%{transform:translateY(-9px)}40%{transform:translateY(0)}60%{transform:translateY(-5px)}80%{transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){#gChick{animation:none!important}*{transition:none!important}.bagIco,.gtoolList{animation:none!important}#gChick.hop,#gTimeBar.over{animation:none}}
 </style>
 
 <div id="app">
@@ -317,7 +337,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
   </main>
 
   <section id="game" hidden aria-label="操作パネル">
-    <div id="padBox"><canvas id="padC" aria-label="タッチパッド（スライドの縮小）"></canvas><div class="padTools"><button class="gmenuBtn" id="padReset" hidden>等倍に もどす</button><button class="gmenuBtn" id="gUndo">もどす</button><button class="gmenuBtn" id="gClear">ぜんぶけす</button></div><div id="padHint">なぞる＝つかう ／ はらう＝ページおくり ／ 2本ゆび＝かくだい</div></div>
+    <div id="padBox"><canvas id="padC" aria-label="タッチパッド（スライドの縮小）"></canvas><div class="padTools"><button class="gmenuBtn" id="padReset" hidden>等倍に もどす</button><button class="gmenuBtn inkT" id="gErase" aria-pressed="false">けしゴム</button><button class="gmenuBtn inkT" id="gUndo">もどす</button><button class="gmenuBtn inkT" id="gClear">ぜんぶけす</button></div><div id="padHint">なぞる＝つかう ／ はらう＝ページおくり ／ 2本ゆび＝かくだい</div></div>
     <div class="gtop">
       <div class="gleft">
         <div class="win gstat">
@@ -329,7 +349,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
             <button class="gico" id="gBlack" aria-label="くろい がめん" title="くろい がめん"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 3h14v10H1z" fill="currentColor"/><path d="M3 5h10v6H3z" fill="#05070d"/></svg></button>
             <button class="gmenuBtn gmenuMain" id="gMenuBtn"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 3h12v2H2zM2 7h12v2H2zM2 11h12v2H2z" fill="currentColor"/></svg>メニュー</button></div>
         </div>
-        <div class="win gsay"><svg id="gChick" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="19" rx="11" ry="10" fill="#ffd23f"/><circle cx="13" cy="10.5" r="7" fill="#ffd23f"/><circle cx="11.2" cy="9.6" r="1.3" fill="#2b2b2b"/><path d="M5.2 11.4 1.6 12.6 5.4 13.6Z" fill="#ff8a2a"/></svg><div id="gMsg" aria-live="polite"></div></div>
+        <div class="win gsay" id="gSay" title="ひよこを タップ"><svg id="gChick" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="19" rx="11" ry="10" fill="#ffd23f"/><circle cx="13" cy="10.5" r="7" fill="#ffd23f"/><circle cx="11.2" cy="9.6" r="1.3" fill="#2b2b2b"/><path d="M5.2 11.4 1.6 12.6 5.4 13.6Z" fill="#ff8a2a"/></svg><div id="gMsg" aria-live="polite"></div></div>
       </div>
       <button class="gbag" id="gDrum" aria-label="どうぐぶくろを ひらく">
         <span class="bagCap">どうぐぶくろ</span>
@@ -342,6 +362,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
         <div class="gtlColors" id="gtlColors"></div>
       </div>
     </div>
+    <div class="gicons" id="gIcons"><button class="gib" data-gi="open" aria-label="PDF"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="0" width="10" height="1" fill="#3a4470"/><rect x="2" y="1" width="1" height="1" fill="#3a4470"/><rect x="3" y="1" width="7" height="1" fill="#eef0f6"/><rect x="10" y="1" width="1" height="1" fill="#3a4470"/><rect x="11" y="1" width="1" height="1" fill="#eef0f6"/><rect x="12" y="1" width="1" height="1" fill="#3a4470"/><rect x="2" y="2" width="1" height="1" fill="#3a4470"/><rect x="3" y="2" width="7" height="1" fill="#eef0f6"/><rect x="10" y="2" width="1" height="1" fill="#3a4470"/><rect x="11" y="2" width="2" height="1" fill="#eef0f6"/><rect x="13" y="2" width="1" height="1" fill="#3a4470"/><rect x="2" y="3" width="1" height="1" fill="#3a4470"/><rect x="3" y="3" width="7" height="1" fill="#eef0f6"/><rect x="10" y="3" width="4" height="1" fill="#3a4470"/><rect x="2" y="4" width="1" height="1" fill="#3a4470"/><rect x="3" y="4" width="11" height="1" fill="#eef0f6"/><rect x="14" y="4" width="1" height="1" fill="#3a4470"/><rect x="2" y="5" width="1" height="1" fill="#3a4470"/><rect x="3" y="5" width="1" height="1" fill="#eef0f6"/><rect x="4" y="5" width="7" height="1" fill="#3a4470"/><rect x="11" y="5" width="3" height="1" fill="#eef0f6"/><rect x="14" y="5" width="1" height="1" fill="#3a4470"/><rect x="2" y="6" width="1" height="1" fill="#3a4470"/><rect x="3" y="6" width="11" height="1" fill="#eef0f6"/><rect x="14" y="6" width="1" height="1" fill="#3a4470"/><rect x="2" y="7" width="1" height="1" fill="#3a4470"/><rect x="3" y="7" width="1" height="1" fill="#eef0f6"/><rect x="4" y="7" width="9" height="1" fill="#3a4470"/><rect x="13" y="7" width="1" height="1" fill="#eef0f6"/><rect x="14" y="7" width="1" height="1" fill="#3a4470"/><rect x="2" y="8" width="1" height="1" fill="#3a4470"/><rect x="3" y="8" width="11" height="1" fill="#eef0f6"/><rect x="14" y="8" width="1" height="1" fill="#3a4470"/><rect x="2" y="9" width="1" height="1" fill="#3a4470"/><rect x="3" y="9" width="1" height="1" fill="#eef0f6"/><rect x="4" y="9" width="9" height="1" fill="#3a4470"/><rect x="13" y="9" width="1" height="1" fill="#eef0f6"/><rect x="14" y="9" width="1" height="1" fill="#3a4470"/><rect x="2" y="10" width="1" height="1" fill="#3a4470"/><rect x="3" y="10" width="11" height="1" fill="#eef0f6"/><rect x="14" y="10" width="1" height="1" fill="#3a4470"/><rect x="2" y="11" width="1" height="1" fill="#3a4470"/><rect x="3" y="11" width="1" height="1" fill="#eef0f6"/><rect x="4" y="11" width="5" height="1" fill="#3a4470"/><rect x="9" y="11" width="5" height="1" fill="#eef0f6"/><rect x="14" y="11" width="1" height="1" fill="#3a4470"/><rect x="2" y="12" width="1" height="1" fill="#3a4470"/><rect x="3" y="12" width="11" height="1" fill="#eef0f6"/><rect x="14" y="12" width="1" height="1" fill="#3a4470"/><rect x="2" y="13" width="13" height="1" fill="#3a4470"/></svg><span>PDF</span></button><button class="gib" data-gi="lib" aria-label="たからばこ"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="1" width="10" height="1" fill="#3b2412"/><rect x="2" y="2" width="1" height="1" fill="#3b2412"/><rect x="3" y="2" width="10" height="1" fill="#b0763a"/><rect x="13" y="2" width="1" height="1" fill="#3b2412"/><rect x="1" y="3" width="1" height="1" fill="#3b2412"/><rect x="2" y="3" width="12" height="1" fill="#b0763a"/><rect x="14" y="3" width="1" height="1" fill="#3b2412"/><rect x="1" y="4" width="1" height="1" fill="#3b2412"/><rect x="2" y="4" width="12" height="1" fill="#ffc93c"/><rect x="14" y="4" width="1" height="1" fill="#3b2412"/><rect x="1" y="5" width="14" height="1" fill="#3b2412"/><rect x="1" y="6" width="1" height="1" fill="#3b2412"/><rect x="2" y="6" width="5" height="1" fill="#b0763a"/><rect x="7" y="6" width="2" height="1" fill="#ffc93c"/><rect x="9" y="6" width="5" height="1" fill="#b0763a"/><rect x="14" y="6" width="1" height="1" fill="#3b2412"/><rect x="1" y="7" width="1" height="1" fill="#3b2412"/><rect x="2" y="7" width="4" height="1" fill="#b0763a"/><rect x="6" y="7" width="1" height="1" fill="#ffc93c"/><rect x="7" y="7" width="2" height="1" fill="#3b2412"/><rect x="9" y="7" width="1" height="1" fill="#ffc93c"/><rect x="10" y="7" width="4" height="1" fill="#b0763a"/><rect x="14" y="7" width="1" height="1" fill="#3b2412"/><rect x="1" y="8" width="1" height="1" fill="#3b2412"/><rect x="2" y="8" width="5" height="1" fill="#ffc93c"/><rect x="7" y="8" width="2" height="1" fill="#3b2412"/><rect x="9" y="8" width="5" height="1" fill="#ffc93c"/><rect x="14" y="8" width="1" height="1" fill="#3b2412"/><rect x="1" y="9" width="1" height="1" fill="#3b2412"/><rect x="2" y="9" width="5" height="1" fill="#b0763a"/><rect x="7" y="9" width="2" height="1" fill="#ffc93c"/><rect x="9" y="9" width="5" height="1" fill="#b0763a"/><rect x="14" y="9" width="1" height="1" fill="#3b2412"/><rect x="1" y="10" width="1" height="1" fill="#3b2412"/><rect x="2" y="10" width="12" height="1" fill="#b0763a"/><rect x="14" y="10" width="1" height="1" fill="#3b2412"/><rect x="1" y="11" width="1" height="1" fill="#3b2412"/><rect x="2" y="11" width="12" height="1" fill="#ffc93c"/><rect x="14" y="11" width="1" height="1" fill="#3b2412"/><rect x="1" y="12" width="14" height="1" fill="#3b2412"/></svg><span>たからばこ</span></button><button class="gib" data-gi="send" id="giSend" hidden aria-label="おくる"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="0" width="8" height="1" fill="#3a4470"/><rect x="2" y="1" width="1" height="1" fill="#3a4470"/><rect x="3" y="1" width="6" height="1" fill="#eef0f6"/><rect x="9" y="1" width="1" height="1" fill="#3a4470"/><rect x="2" y="2" width="1" height="1" fill="#3a4470"/><rect x="3" y="2" width="1" height="1" fill="#eef0f6"/><rect x="4" y="2" width="4" height="1" fill="#3a4470"/><rect x="8" y="2" width="1" height="1" fill="#eef0f6"/><rect x="9" y="2" width="1" height="1" fill="#3a4470"/><rect x="2" y="3" width="1" height="1" fill="#3a4470"/><rect x="3" y="3" width="6" height="1" fill="#eef0f6"/><rect x="9" y="3" width="1" height="1" fill="#3a4470"/><rect x="2" y="4" width="1" height="1" fill="#3a4470"/><rect x="3" y="4" width="1" height="1" fill="#eef0f6"/><rect x="4" y="4" width="4" height="1" fill="#3a4470"/><rect x="8" y="4" width="1" height="1" fill="#eef0f6"/><rect x="9" y="4" width="1" height="1" fill="#3a4470"/><rect x="12" y="4" width="1" height="1" fill="#ffc93c"/><rect x="2" y="5" width="1" height="1" fill="#3a4470"/><rect x="3" y="5" width="6" height="1" fill="#eef0f6"/><rect x="9" y="5" width="1" height="1" fill="#3a4470"/><rect x="12" y="5" width="2" height="1" fill="#ffc93c"/><rect x="2" y="6" width="1" height="1" fill="#3a4470"/><rect x="3" y="6" width="1" height="1" fill="#eef0f6"/><rect x="4" y="6" width="4" height="1" fill="#3a4470"/><rect x="8" y="6" width="1" height="1" fill="#eef0f6"/><rect x="9" y="6" width="1" height="1" fill="#3a4470"/><rect x="10" y="6" width="5" height="1" fill="#ffc93c"/><rect x="2" y="7" width="1" height="1" fill="#3a4470"/><rect x="3" y="7" width="6" height="1" fill="#eef0f6"/><rect x="9" y="7" width="1" height="1" fill="#3a4470"/><rect x="10" y="7" width="6" height="1" fill="#ffc93c"/><rect x="2" y="8" width="1" height="1" fill="#3a4470"/><rect x="3" y="8" width="1" height="1" fill="#eef0f6"/><rect x="4" y="8" width="4" height="1" fill="#3a4470"/><rect x="8" y="8" width="1" height="1" fill="#eef0f6"/><rect x="9" y="8" width="1" height="1" fill="#3a4470"/><rect x="10" y="8" width="5" height="1" fill="#ffc93c"/><rect x="2" y="9" width="1" height="1" fill="#3a4470"/><rect x="3" y="9" width="6" height="1" fill="#eef0f6"/><rect x="9" y="9" width="1" height="1" fill="#3a4470"/><rect x="12" y="9" width="2" height="1" fill="#ffc93c"/><rect x="2" y="10" width="1" height="1" fill="#3a4470"/><rect x="3" y="10" width="6" height="1" fill="#eef0f6"/><rect x="9" y="10" width="1" height="1" fill="#3a4470"/><rect x="12" y="10" width="1" height="1" fill="#ffc93c"/><rect x="2" y="11" width="8" height="1" fill="#3a4470"/></svg><span>おくる</span></button><button class="gib" data-gi="grid" aria-label="いちらん"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z" fill="currentColor"/></svg><span>いちらん</span></button><button class="gib" data-gi="full" aria-label="ぜんがめん"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 1h5v2H3v3H1zM10 1h5v5h-2V3h-3zM1 10h2v3h3v2H1zM13 10h2v5h-5v-2h3z" fill="currentColor"/></svg><span>ぜんがめん</span></button><button class="gib" data-gi="black" aria-label="くろ"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 3h14v10H1z" fill="currentColor"/><path d="M3 5h10v6H3z" fill="#05070d"/></svg><span>くろ</span></button><button class="gib" data-gi="timer" id="giTimer" aria-label="タイマー"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="5" y="0" width="6" height="1" fill="#ffc93c"/><rect x="3" y="1" width="2" height="1" fill="#ffc93c"/><rect x="5" y="1" width="6" height="1" fill="#eef0f6"/><rect x="11" y="1" width="2" height="1" fill="#ffc93c"/><rect x="2" y="2" width="1" height="1" fill="#ffc93c"/><rect x="3" y="2" width="4" height="1" fill="#eef0f6"/><rect x="7" y="2" width="1" height="1" fill="#1b2130"/><rect x="8" y="2" width="5" height="1" fill="#eef0f6"/><rect x="13" y="2" width="1" height="1" fill="#ffc93c"/><rect x="1" y="3" width="1" height="1" fill="#ffc93c"/><rect x="2" y="3" width="5" height="1" fill="#eef0f6"/><rect x="7" y="3" width="1" height="1" fill="#1b2130"/><rect x="8" y="3" width="6" height="1" fill="#eef0f6"/><rect x="14" y="3" width="1" height="1" fill="#ffc93c"/><rect x="1" y="4" width="1" height="1" fill="#ffc93c"/><rect x="2" y="4" width="5" height="1" fill="#eef0f6"/><rect x="7" y="4" width="1" height="1" fill="#1b2130"/><rect x="8" y="4" width="6" height="1" fill="#eef0f6"/><rect x="14" y="4" width="1" height="1" fill="#ffc93c"/><rect x="0" y="5" width="1" height="1" fill="#ffc93c"/><rect x="1" y="5" width="6" height="1" fill="#eef0f6"/><rect x="7" y="5" width="1" height="1" fill="#1b2130"/><rect x="8" y="5" width="7" height="1" fill="#eef0f6"/><rect x="15" y="5" width="1" height="1" fill="#ffc93c"/><rect x="0" y="6" width="1" height="1" fill="#ffc93c"/><rect x="1" y="6" width="6" height="1" fill="#eef0f6"/><rect x="7" y="6" width="1" height="1" fill="#1b2130"/><rect x="8" y="6" width="7" height="1" fill="#eef0f6"/><rect x="15" y="6" width="1" height="1" fill="#ffc93c"/><rect x="0" y="7" width="1" height="1" fill="#ffc93c"/><rect x="1" y="7" width="6" height="1" fill="#eef0f6"/><rect x="7" y="7" width="4" height="1" fill="#1b2130"/><rect x="11" y="7" width="4" height="1" fill="#eef0f6"/><rect x="15" y="7" width="1" height="1" fill="#ffc93c"/><rect x="0" y="8" width="1" height="1" fill="#ffc93c"/><rect x="1" y="8" width="14" height="1" fill="#eef0f6"/><rect x="15" y="8" width="1" height="1" fill="#ffc93c"/><rect x="0" y="9" width="1" height="1" fill="#ffc93c"/><rect x="1" y="9" width="14" height="1" fill="#eef0f6"/><rect x="15" y="9" width="1" height="1" fill="#ffc93c"/><rect x="1" y="10" width="1" height="1" fill="#ffc93c"/><rect x="2" y="10" width="12" height="1" fill="#eef0f6"/><rect x="14" y="10" width="1" height="1" fill="#ffc93c"/><rect x="1" y="11" width="1" height="1" fill="#ffc93c"/><rect x="2" y="11" width="12" height="1" fill="#eef0f6"/><rect x="14" y="11" width="1" height="1" fill="#ffc93c"/><rect x="2" y="12" width="1" height="1" fill="#ffc93c"/><rect x="3" y="12" width="10" height="1" fill="#eef0f6"/><rect x="13" y="12" width="1" height="1" fill="#ffc93c"/><rect x="3" y="13" width="2" height="1" fill="#ffc93c"/><rect x="5" y="13" width="6" height="1" fill="#eef0f6"/><rect x="11" y="13" width="2" height="1" fill="#ffc93c"/><rect x="5" y="14" width="6" height="1" fill="#ffc93c"/></svg><span>タイマー</span></button><button class="gib" data-gi="fit" id="giFit" aria-label="はば"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="1" y="2" width="1" height="1" fill="#dfe3ee"/><rect x="14" y="2" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="3" width="1" height="1" fill="#dfe3ee"/><rect x="14" y="3" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="4" width="1" height="1" fill="#dfe3ee"/><rect x="4" y="4" width="1" height="1" fill="#dfe3ee"/><rect x="11" y="4" width="1" height="1" fill="#dfe3ee"/><rect x="14" y="4" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="5" width="1" height="1" fill="#dfe3ee"/><rect x="3" y="5" width="2" height="1" fill="#dfe3ee"/><rect x="11" y="5" width="2" height="1" fill="#dfe3ee"/><rect x="14" y="5" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="6" width="13" height="1" fill="#dfe3ee"/><rect x="1" y="7" width="1" height="1" fill="#dfe3ee"/><rect x="3" y="7" width="2" height="1" fill="#dfe3ee"/><rect x="11" y="7" width="2" height="1" fill="#dfe3ee"/><rect x="14" y="7" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="8" width="1" height="1" fill="#dfe3ee"/><rect x="4" y="8" width="1" height="1" fill="#dfe3ee"/><rect x="11" y="8" width="1" height="1" fill="#dfe3ee"/><rect x="14" y="8" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="9" width="1" height="1" fill="#dfe3ee"/><rect x="14" y="9" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="10" width="1" height="1" fill="#dfe3ee"/><rect x="14" y="10" width="1" height="1" fill="#dfe3ee"/></svg><span>はば</span></button><button class="gib" data-gi="link" id="giLink" hidden aria-label="リモコン"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="5" y="0" width="6" height="1" fill="#dfe3ee"/><rect x="4" y="1" width="1" height="1" fill="#dfe3ee"/><rect x="5" y="1" width="6" height="1" fill="#1b2242"/><rect x="11" y="1" width="1" height="1" fill="#dfe3ee"/><rect x="4" y="2" width="1" height="1" fill="#dfe3ee"/><rect x="5" y="2" width="1" height="1" fill="#1b2242"/><rect x="6" y="2" width="4" height="1" fill="#8fb3ff"/><rect x="10" y="2" width="1" height="1" fill="#1b2242"/><rect x="11" y="2" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="3" width="1" height="1" fill="#ffc93c"/><rect x="4" y="3" width="1" height="1" fill="#dfe3ee"/><rect x="5" y="3" width="1" height="1" fill="#1b2242"/><rect x="6" y="3" width="4" height="1" fill="#8fb3ff"/><rect x="10" y="3" width="1" height="1" fill="#1b2242"/><rect x="11" y="3" width="1" height="1" fill="#dfe3ee"/><rect x="14" y="3" width="1" height="1" fill="#ffc93c"/><rect x="0" y="4" width="1" height="1" fill="#ffc93c"/><rect x="2" y="4" width="1" height="1" fill="#ffc93c"/><rect x="4" y="4" width="1" height="1" fill="#dfe3ee"/><rect x="5" y="4" width="1" height="1" fill="#1b2242"/><rect x="6" y="4" width="4" height="1" fill="#8fb3ff"/><rect x="10" y="4" width="1" height="1" fill="#1b2242"/><rect x="11" y="4" width="1" height="1" fill="#dfe3ee"/><rect x="13" y="4" width="1" height="1" fill="#ffc93c"/><rect x="15" y="4" width="1" height="1" fill="#ffc93c"/><rect x="0" y="5" width="1" height="1" fill="#ffc93c"/><rect x="2" y="5" width="1" height="1" fill="#ffc93c"/><rect x="4" y="5" width="1" height="1" fill="#dfe3ee"/><rect x="5" y="5" width="1" height="1" fill="#1b2242"/><rect x="6" y="5" width="4" height="1" fill="#8fb3ff"/><rect x="10" y="5" width="1" height="1" fill="#1b2242"/><rect x="11" y="5" width="1" height="1" fill="#dfe3ee"/><rect x="13" y="5" width="1" height="1" fill="#ffc93c"/><rect x="15" y="5" width="1" height="1" fill="#ffc93c"/><rect x="1" y="6" width="1" height="1" fill="#ffc93c"/><rect x="4" y="6" width="1" height="1" fill="#dfe3ee"/><rect x="5" y="6" width="1" height="1" fill="#1b2242"/><rect x="6" y="6" width="4" height="1" fill="#8fb3ff"/><rect x="10" y="6" width="1" height="1" fill="#1b2242"/><rect x="11" y="6" width="1" height="1" fill="#dfe3ee"/><rect x="14" y="6" width="1" height="1" fill="#ffc93c"/><rect x="4" y="7" width="1" height="1" fill="#dfe3ee"/><rect x="5" y="7" width="1" height="1" fill="#1b2242"/><rect x="6" y="7" width="4" height="1" fill="#8fb3ff"/><rect x="10" y="7" width="1" height="1" fill="#1b2242"/><rect x="11" y="7" width="1" height="1" fill="#dfe3ee"/><rect x="4" y="8" width="1" height="1" fill="#dfe3ee"/><rect x="5" y="8" width="6" height="1" fill="#1b2242"/><rect x="11" y="8" width="1" height="1" fill="#dfe3ee"/><rect x="4" y="9" width="1" height="1" fill="#dfe3ee"/><rect x="5" y="9" width="2" height="1" fill="#1b2242"/><rect x="7" y="9" width="2" height="1" fill="#ffc93c"/><rect x="9" y="9" width="2" height="1" fill="#1b2242"/><rect x="11" y="9" width="1" height="1" fill="#dfe3ee"/><rect x="5" y="10" width="6" height="1" fill="#dfe3ee"/></svg><span>リモコン</span></button><button class="gib" data-gi="layout" aria-label="ふつう"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="1" y="1" width="14" height="1" fill="#dfe3ee"/><rect x="1" y="2" width="1" height="1" fill="#dfe3ee"/><rect x="2" y="2" width="12" height="1" fill="#1b2242"/><rect x="14" y="2" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="3" width="1" height="1" fill="#dfe3ee"/><rect x="2" y="3" width="1" height="1" fill="#1b2242"/><rect x="3" y="3" width="10" height="1" fill="#8fb3ff"/><rect x="13" y="3" width="1" height="1" fill="#1b2242"/><rect x="14" y="3" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="4" width="1" height="1" fill="#dfe3ee"/><rect x="2" y="4" width="1" height="1" fill="#1b2242"/><rect x="3" y="4" width="10" height="1" fill="#8fb3ff"/><rect x="13" y="4" width="1" height="1" fill="#1b2242"/><rect x="14" y="4" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="5" width="1" height="1" fill="#dfe3ee"/><rect x="2" y="5" width="1" height="1" fill="#1b2242"/><rect x="3" y="5" width="10" height="1" fill="#8fb3ff"/><rect x="13" y="5" width="1" height="1" fill="#1b2242"/><rect x="14" y="5" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="6" width="1" height="1" fill="#dfe3ee"/><rect x="2" y="6" width="1" height="1" fill="#1b2242"/><rect x="3" y="6" width="10" height="1" fill="#8fb3ff"/><rect x="13" y="6" width="1" height="1" fill="#1b2242"/><rect x="14" y="6" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="7" width="1" height="1" fill="#dfe3ee"/><rect x="2" y="7" width="12" height="1" fill="#1b2242"/><rect x="14" y="7" width="1" height="1" fill="#dfe3ee"/><rect x="1" y="8" width="14" height="1" fill="#dfe3ee"/><rect x="7" y="9" width="2" height="1" fill="#dfe3ee"/><rect x="5" y="10" width="6" height="1" fill="#dfe3ee"/></svg><span>ふつう</span></button><button class="gib" data-gi="help" aria-label="ヘルプ"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="5" y="1" width="6" height="1" fill="#dfe3ee"/><rect x="4" y="2" width="2" height="1" fill="#dfe3ee"/><rect x="10" y="2" width="2" height="1" fill="#dfe3ee"/><rect x="4" y="3" width="2" height="1" fill="#dfe3ee"/><rect x="10" y="3" width="2" height="1" fill="#dfe3ee"/><rect x="10" y="4" width="2" height="1" fill="#dfe3ee"/><rect x="9" y="5" width="2" height="1" fill="#dfe3ee"/><rect x="8" y="6" width="2" height="1" fill="#dfe3ee"/><rect x="7" y="7" width="2" height="1" fill="#dfe3ee"/><rect x="7" y="8" width="2" height="1" fill="#dfe3ee"/><rect x="7" y="10" width="2" height="1" fill="#dfe3ee"/><rect x="7" y="11" width="2" height="1" fill="#dfe3ee"/></svg><span>ヘルプ</span></button></div>
     <div class="gnav"><button id="gPrev">◀ もどる</button><button id="gNext">すすむ ▶</button></div>
     <div class="win" id="gAsk" hidden><p id="gAskMsg"></p><div class="gaskBtns"><button class="gmenuBtn" id="gAskYes">はい</button><button class="gmenuBtn" id="gAskNo">いいえ</button></div></div>
     <div class="win" id="gMenu" hidden>
@@ -3626,6 +3647,28 @@ game = (() => {
   };
   g.hop = () => { chick.classList.remove('hop'); void chick.getBoundingClientRect(); chick.classList.add('hop'); };
   g.resetTimer = () => { g.t0 = performance.now(); g.overSaid = false; };
+  const CHEEP = [
+    'ピヨッ！ よんだ？', 'きょうも がんばってて えらいぞ！', 'ゆびさし じゅんび ばんたんだぞ！',
+    'くすぐったいぞ〜！', 'おみず のんだ？ ひとやすみも だいじだぞ', 'ピヨピヨ… いい しりょうだな',
+    'マーカーは ななめに かこむと まとめて ひかるぞ', 'パッドを 2本ゆびで ひろげると かくだいだぞ',
+    'ページを ながおしすると いちらんが でるぞ', 'きんちょうしても だいじょうぶ。ゆっくり いこう',
+    'ひよこは みてるぞ… じっと…', 'しんこきゅう しんこきゅう。すー、はー'
+  ];
+  const MOVES = ['hop', 'wiggle', 'squish', 'bounce'];
+  let pokes = [], lastLine = -1;
+  $('#gSay').addEventListener('click', () => {
+    const now = performance.now(); pokes = pokes.filter(t => now - t < 2500); pokes.push(now);
+    let mv = MOVES[Math.floor(Math.random() * MOVES.length)], line;
+    if (pokes.length >= 5){ line = 'そんなに つついたら… たまごに もどっちゃうぞ！'; mv = 'spin'; pokes = []; }
+    else {
+      const n = S.src ? S.src.count : 0, f = n ? (S.page + 1) / n : 0;
+      if (n > 2 && f > .8 && Math.random() < .35) line = 'もうすこしで おわりだぞ、ファイト！';
+      else { let i; do { i = Math.floor(Math.random() * CHEEP.length); } while (i === lastLine && CHEEP.length > 1); lastLine = i; line = CHEEP[i]; }
+    }
+    for (const c of ['hop', 'wiggle', 'squish', 'bounce', 'spin']) chick.classList.remove(c);
+    void chick.getBoundingClientRect(); chick.classList.add(mv);
+    g.say(line);
+  });
   function apply(){
     const mode = store.get('layoutMode', 'auto');
     g.on = mode === 'phone' ? true : mode === 'normal' ? false : (mq.matches || mqL.matches);
@@ -3682,7 +3725,7 @@ game = (() => {
       const tb = $('#gTimeBar'); tb.style.width = Math.min(100, frac * 100) + '%'; tb.classList.toggle('over', frac >= 1);
       if (frac >= 1 && !g.overSaid){ g.overSaid = true; g.say('じかんが おしているぞ…！ まきで いこう！'); g.hop(); }
     }
-    if (g.dirty || ptr.down || fxActive()){ drawPad(); g.dirty = false; }
+    if (g.dirty || ptr.down || fxActive()){ drawPad(); g.dirty = false; g.inkTools(); }
   };
   g.page = (prev, i) => {
     g.combo = 0; g.dirty = true; g.setPv(null);
@@ -3703,8 +3746,21 @@ game = (() => {
     else if (i > prev) g.say(`ページ ${i + 1} へ すすんだ！`);
     else g.say(`ページ ${i + 1} に もどった`);
   };
+  g.lastInk = 'marker';
+  g.inkTools = () => {
+    const writing = S.tool === 'marker' || S.tool === 'pen' || S.tool === 'eraser';
+    const has = !!(S.ink.get(S.page) || []).length;
+    for (const id of ['#gErase', '#gUndo', '#gClear']) $(id).hidden = !(writing || has);
+    $('#gErase').setAttribute('aria-pressed', String(S.tool === 'eraser'));
+  };
+  $('#gErase').onclick = () => {
+    if (S.tool === 'eraser') setTool(g.lastInk || 'marker');
+    else setTool('eraser');
+  };
   g.tool = t => {
-    renderWheel(t);
+    if (t === 'marker' || t === 'pen') g.lastInk = t;
+    g.inkTools();
+    renderWheel(t === 'eraser' ? 'eraser' : t);
     if (g.on && t !== g.prevTool) g.say(LINES[t] || '');
     g.prevTool = t;
   };
@@ -3738,14 +3794,15 @@ game = (() => {
     }
   }
   const list = $('#gToolList'), grid = $('#gtlGrid');
-  ['nav', 'laser', 'arrow', 'spot', 'marker', 'eraser', 'zoom', 'pen'].forEach(t => {
+  ['nav', 'laser', 'arrow', 'spot', 'marker', 'zoom', 'pen'].forEach(t => {
     const b = document.createElement('button'); b.textContent = WNAME[t]; b.dataset.t = t;
     if (t === 'marker' || t === 'pen'){ const u = document.createElement('span'); u.className = 'uline'; b.appendChild(u); }
+    if (t === 'zoom') b.style.gridColumn = 'span 2';
     b.onclick = () => { list.hidden = true; setTool(t); };
     grid.appendChild(b);
   });
   drum.onclick = () => {
-    grid.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === S.tool)));
+    grid.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === S.tool || (S.tool === 'eraser' && b.dataset.t === g.lastInk))));
     buildBagColors(); list.hidden = false;
   };
   $('#gtlClose').onclick = () => { list.hidden = true; };
@@ -3808,6 +3865,21 @@ game = (() => {
   const menuText = () => { $('#gmFit').textContent = 'はばに あわせる：' + (S.fitW ? 'ON' : 'OFF'); $('#gmTarget').textContent = 'もくひょう じかん：' + g.target + 'ふん'; $('#gTarget').textContent = 'もくひょう ' + g.target + 'ふん'; };
   $('#gMenuBtn').onclick = () => { menuText(); $('#gMenu').hidden = false; };
   $('#gGrid').onclick = () => openPanel('grid');
+  const nextTarget = () => { g.target = TARGETS[(TARGETS.indexOf(g.target) + 1) % TARGETS.length]; store.set('target', g.target); menuText(); g.say(`もくひょう じかんを ${g.target}ふんに したぞ！（ながおしで リセット）`); };
+  $('#gIcons').addEventListener('click', e => {
+    const b = e.target.closest('[data-gi]'); if (!b) return;
+    const a = b.dataset.gi;
+    if (a === 'open') $('#file').click();
+    else if (a === 'lib') openLib();
+    else if (a === 'send') sendPdf();
+    else if (a === 'grid') openPanel('grid');
+    else if (a === 'full') toggleFull();
+    else if (a === 'black') toggleBlack('black');
+    else if (a === 'fit'){ setFit(!S.fitW); g.say(S.fitW ? 'はばに あわせたぞ（たてながの しりょう むき）' : 'ページ ぜんたいを みせるぞ'); }
+    else if (a === 'link') openPanel('link');
+    else if (a === 'layout'){ store.set('layoutMode', (mq.matches || mqL.matches) ? 'normal' : 'auto'); apply(); toast('ふつうの画面に しました（下の「スマホ画面」で 戻せます）'); }
+    else if (a === 'help') openPanel('help');
+  });
   $('#gFull').onclick = () => toggleFull();
   $('#gBlack').onclick = () => toggleBlack('black');
   const ask = (msg, yes) => {
@@ -3823,7 +3895,7 @@ game = (() => {
       if (!t0) return;
       const f = Math.min(1, (performance.now() - t0) / ms);
       row.style.setProperty('--lp', (f * 100).toFixed(1) + '%');
-      if (f >= 1){ fired = true; stop(); onLong(); return; }
+      if (f >= 1){ fired = true; row.dataset.long = '1'; stop(); onLong(); return; }
       raf = requestAnimationFrame(tick);
     };
     row.classList.add('lp');
@@ -3833,8 +3905,10 @@ game = (() => {
     row.addEventListener('contextmenu', e => e.preventDefault());
   }
   const rows = document.querySelectorAll('.gstat .grow');
-  longPress(rows[1], 650, () => ask(`タイマーを リセットしますか？（いま ${$('#gTime').textContent}／もくひょう ${g.target}ふん）`, () => { g.resetTimer(); g.say('タイマーを リセットした！ よーい、どん！'); }),
-    () => g.say('じかんを ながおしすると タイマーを リセットできるぞ'));
+  const askReset = () => ask(`タイマーを リセットしますか？（いま ${$('#gTime').textContent}／もくひょう ${g.target}ふん）`, () => { g.resetTimer(); g.say('タイマーを リセットした！ よーい、どん！'); });
+  longPress(rows[1], 650, askReset, nextTarget);
+  longPress($('#giTimer'), 650, askReset, () => {});
+  $('#giTimer').addEventListener('click', e => { e.stopPropagation(); if (!$('#giTimer').dataset.long) nextTarget(); delete $('#giTimer').dataset.long; }, true);
   longPress(rows[0], 500, () => openPanel('grid'), () => g.say('ページを ながおしすると いちらんが ひらくぞ'));
   $('#gMenu').addEventListener('click', e => {
     const b = e.target.closest('[data-gm]'); if (!b) return;
@@ -3848,7 +3922,7 @@ game = (() => {
     else if (a === 'black') toggleBlack('black');
     else if (a === 'reset'){ g.resetTimer(); g.say('タイマーを リセットした！ よーい、どん！'); }
     else if (a === 'help') openPanel('help');
-    else if (a === 'layout'){ store.set('layoutMode', mq.matches ? 'normal' : 'auto'); apply(); toast('ふつうの画面に しました（下の「スマホ画面」で 戻せます）'); }
+    else if (a === 'layout'){ store.set('layoutMode', (mq.matches || mqL.matches) ? 'normal' : 'auto'); apply(); toast('ふつうの画面に しました（下の「スマホ画面」で 戻せます）'); }
     else if (a === 'link') openPanel('link');
     else if (a === 'lib') openLib();
     else if (a === 'send') sendPdf();
@@ -4126,7 +4200,7 @@ const aesKey = () => crypto.subtle.importKey('raw', sync.key, 'AES-GCM', false, 
 function roleUI(){
   const on = sync.role !== 'off';
   app.classList.toggle('remotePad', sync.role === 'remote');
-  $('#fbSend').hidden = !on; $('#gmSend').hidden = !on;
+  $('#fbSend').hidden = !on; $('#gmSend').hidden = !on; $('#giSend').hidden = !on;
   $('#qrShow').hidden = sync.role !== 'screen';
   if (sync.role !== 'screen'){ $('#qrBox').hidden = true; }
   $('#sendAsk').hidden = true; $('#fbSend').classList.remove('hot');
@@ -4301,7 +4375,7 @@ $('#libBtn').onclick = openLib;
 $('#libAuto').onchange = e => store.set('libAuto', e.target.checked);
 $('#libClear').onclick = async () => { await lib.clear().catch(() => {}); renderLib(); toast('しりょうばこを からにしました'); };
 function toggleFullIfNeeded(){ if (!(document.fullscreenElement || document.webkitFullscreenElement) && !app.classList.contains('immersive')) toggleFull(); }
-if (window.firebase){ $('#linkBtn').hidden = false; $('#gmLink').hidden = false; }
+if (window.firebase){ $('#linkBtn').hidden = false; $('#gmLink').hidden = false; $('#giLink').hidden = false; }
 syncStatus();
 
 new ResizeObserver(() => layout()).observe(stage);
