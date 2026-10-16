@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%20%20%3Crect%20width%3D%22512%22%20height%3D%22512%22%20fill%3D%22%23141a33%22/%3E%20%20%3Ccircle%20cx%3D%22256%22%20cy%3D%22268%22%20r%3D%22190%22%20fill%3D%22%231d2546%22/%3E%20%20%3Cg%20transform%3D%22translate%2896%2092%29%20scale%2810%29%22%3E%20%20%20%20%3Cellipse%20cx%3D%2216%22%20cy%3D%2219%22%20rx%3D%2211%22%20ry%3D%2210%22%20fill%3D%22%23ffd23f%22/%3E%20%20%20%20%3Ccircle%20cx%3D%2213%22%20cy%3D%2210.5%22%20r%3D%227%22%20fill%3D%22%23ffd23f%22/%3E%20%20%20%20%3Ccircle%20cx%3D%2211.2%22%20cy%3D%229.6%22%20r%3D%221.3%22%20fill%3D%22%232b2b2b%22/%3E%20%20%20%20%3Ccircle%20cx%3D%229.4%22%20cy%3D%2212.4%22%20r%3D%221.1%22%20fill%3D%22%23ffb3a7%22%20opacity%3D%22.8%22/%3E%20%20%20%20%3Cpath%20d%3D%22M5.2%2011.4%201.6%2012.6%205.4%2013.6Z%22%20fill%3D%22%23ff8a2a%22/%3E%20%20%20%20%3Cpath%20d%3D%22M19%2018c4%200%207%202%209-1-1%204-5%206-9%205z%22%20fill%3D%22%23f2b705%22/%3E%20%20%3C/g%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0c1020">
+<meta name="apple-mobile-web-app-title" content="ゆびスラ">
 <title>ゆびさしスライド</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,6 +72,8 @@ button,input,label.btn{font:inherit;color:inherit}
 #sheet canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #inkM{mix-blend-mode:multiply}
 #fx{touch-action:none}
+/* iPad + Apple Pencil: a long press or double tap must not start a text selection over the slide */
+#stage,#stage *,#padBox,#padBox *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #fx.c-none{cursor:none}
 #fx.c-nav{cursor:pointer}
 #fx.c-draw{cursor:crosshair}
@@ -3383,6 +3391,13 @@ function endPointer(e){
   if (e.pointerType !== 'mouse' && S.tool !== 'spot' && S.tool !== 'arrow') ptr.in = false;
 }
 fx.addEventListener('pointerdown', onDown);
+/* stop iOS from turning pen strokes into a page selection (the blue overlay) */
+for (const el of [fx, $('#padC')]){
+  el.addEventListener('touchstart', e => { if (e.cancelable && !(stage.classList.contains('fitw') && S.tool === 'nav')) e.preventDefault(); }, { passive: false });
+  el.addEventListener('dblclick', e => e.preventDefault());
+  el.addEventListener('contextmenu', e => e.preventDefault());
+}
+document.addEventListener('selectstart', e => { if (e.target.closest && e.target.closest('#stage,#padBox')) e.preventDefault(); });
 fx.addEventListener('pointermove', onMove);
 fx.addEventListener('pointerup', endPointer);
 fx.addEventListener('pointercancel', endPointer);
