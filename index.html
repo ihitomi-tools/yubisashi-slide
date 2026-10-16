@@ -164,8 +164,21 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 .gtlGrid button{background:#1b2242;border:1px solid #3a4470;border-radius:8px;color:#eef0f6;font:inherit;font-size:14px;cursor:pointer;min-height:36px}
 .gtlGrid button[aria-pressed="true"]{border-color:#ffc93c;color:#ffc93c;background:#2c2a2a}
 .gtlGrid button[aria-pressed="true"]::before{content:"\25B6";font-size:10px;margin-right:2px}
+.gtlGrid button .uline{display:block;height:3px;border-radius:2px;margin:2px auto 0;width:60%}
 .gleft{display:flex;flex-direction:column;gap:7px;min-width:0}
-.gsub{justify-content:space-between;font-size:11px;color:#9aa3c4}
+.gsub{justify-content:flex-end;gap:6px;font-size:11px;color:#9aa3c4;margin-top:2px}
+.gico{width:34px;height:28px;display:grid;place-items:center;background:#1b2242;border:1px solid #3a4470;border-radius:6px;color:#dfe3ee;cursor:pointer;padding:0}
+.gico svg{width:16px;height:16px}
+.gico:active{transform:translateY(1px)}
+.gmenuMain{display:inline-flex;align-items:center;gap:5px;height:28px;white-space:nowrap;border-color:#ffc93c;color:#ffc93c;font-size:13px;padding:0 10px;margin-left:auto}
+.gmenuMain svg{width:13px;height:13px}
+.grow.lp{cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:4px;-webkit-touch-callout:none}
+.grow.lp.pressing{background:linear-gradient(90deg,rgba(255,201,60,.28) var(--lp,0%),transparent var(--lp,0%))}
+#gAsk{position:absolute;left:12px;right:12px;bottom:76px;z-index:6;display:flex;flex-direction:column;gap:10px;padding:12px 14px;box-shadow:0 6px 0 #070a16}
+#gAsk p{margin:0;font-size:14px;line-height:1.5}
+.gaskBtns{display:flex;gap:10px;justify-content:flex-end}
+.gaskBtns .gmenuBtn{font-size:14px;padding:6px 16px}
+#gAskYes{border-color:#ffc93c;color:#ffc93c}
 .gbag{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:118px;padding:6px 4px 8px;border:3px double #ffc93c;border-radius:10px;background:linear-gradient(#232c55,#1b2242);color:#eef0f6;font:inherit;cursor:pointer;box-shadow:0 4px 0 #070a16;transition:transform .08s,box-shadow .08s;user-select:none;-webkit-user-select:none}
 .gbag:active{transform:translateY(3px);box-shadow:0 1px 0 #070a16}
 .bagCap{font-size:10.5px;color:#ffc93c;letter-spacing:.04em}
@@ -175,7 +188,9 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 .bagCur::before{content:"\25B6";font-size:9px;color:#ffc93c;margin-right:2px;vertical-align:1px}
 .gtoolList{animation:bagOpen .16s ease-out}
 @keyframes bagOpen{from{transform:scale(.94);opacity:0}}
-.gtlColors{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:11px;color:#9aa3c4;flex-wrap:wrap}
+.gtlColors{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:#9aa3c4}
+.gtlColors .cg{border-top:2px solid #3a4470;padding-top:5px;gap:6px}
+.gtlColors .cg:last-child{justify-content:flex-end}
 .gtlColors .cg{display:flex;align-items:center;gap:5px}
 .gtlColors button{width:22px;height:22px;border-radius:50%;border:2px solid #141a33;box-shadow:0 0 0 1px #3a4470;padding:0;cursor:pointer}
 .gtlColors button[aria-pressed="true"]{box-shadow:0 0 0 2px #ffc93c}
@@ -226,13 +241,16 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 #gMenu button:hover::before,#gMenu button:focus-visible::before{color:#ffc93c}
 #gMenu .ttl{font-size:12px;color:#9aa3c4;margin-bottom:4px}
  /* phone held sideways: slide, status and buttons on the left, a big touch pad on the right */
-#app.mobile.mland,#app.mobile.mland.immersive{grid-template-columns:minmax(0,42%) minmax(0,1fr);grid-template-rows:var(--stageH,40vh) auto 1fr auto;column-gap:8px;row-gap:6px;background:#0c1020;
+#app.mobile.mland,#app.mobile.mland.immersive{grid-template-columns:minmax(0,1fr) minmax(0,42%);grid-template-rows:var(--stageH,40vh) auto 1fr auto;column-gap:8px;row-gap:6px;background:#0c1020;
   padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));box-sizing:border-box}
 #app.mland #game{display:contents}
-#app.mland #stage{grid-column:1;grid-row:1;border-radius:6px}
-#app.mland .gtop{grid-column:1;grid-row:2}
-#app.mland #padBox{grid-column:2;grid-row:1 / 5;min-height:0}
-#app.mland .gnav{grid-column:1;grid-row:4}
+#app.mland #stage{grid-column:2;grid-row:1;border-radius:6px}
+#app.mland .gtop{grid-column:2;grid-row:2}
+#app.mland #padBox{grid-column:1;grid-row:1 / 5;min-height:0}
+#app.mland .gnav{grid-column:2;grid-row:4}
+#app.mland .gico{width:28px}
+#app.mland .gmenuMain{padding:0 7px;font-size:12px}
+#app.mland #gAsk{left:auto;right:12px;width:min(320px,40vw);bottom:60px}
 #app.mland .gnav button{height:40px;font-size:15px}
 #app.mland #gMenu{inset:6px}
 #app.mland .gtlGrid button{font-size:12px;white-space:nowrap;padding:0 2px;min-height:30px}
@@ -299,12 +317,17 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
   </main>
 
   <section id="game" hidden aria-label="操作パネル">
+    <div id="padBox"><canvas id="padC" aria-label="タッチパッド（スライドの縮小）"></canvas><div class="padTools"><button class="gmenuBtn" id="padReset" hidden>等倍に もどす</button><button class="gmenuBtn" id="gUndo">もどす</button><button class="gmenuBtn" id="gClear">ぜんぶけす</button></div><div id="padHint">なぞる＝つかう ／ はらう＝ページおくり ／ 2本ゆび＝かくだい</div></div>
     <div class="gtop">
       <div class="gleft">
         <div class="win gstat">
           <div class="grow"><span class="lab">ページ</span><div class="gbar"><i id="gPageBar"></i></div><span class="num" id="gPage">1/3</span></div>
           <div class="grow"><span class="lab">じかん</span><div class="gbar"><i id="gTimeBar"></i></div><span class="num" id="gTime">00:00</span></div>
-          <div class="grow gsub"><span id="gTarget">もくひょう 30ふん</span><button class="gmenuBtn" id="gMenuBtn">メニュー</button></div>
+          <div class="grow gsub"><span id="gTarget" hidden>もくひょう 30ふん</span>
+            <button class="gico" id="gGrid" aria-label="ページ いちらん" title="ページ いちらん"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z" fill="currentColor"/></svg></button>
+            <button class="gico" id="gFull" aria-label="ぜんがめん" title="ぜんがめん"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 1h5v2H3v3H1zM10 1h5v5h-2V3h-3zM1 10h2v3h3v2H1zM13 10h2v5h-5v-2h3z" fill="currentColor"/></svg></button>
+            <button class="gico" id="gBlack" aria-label="くろい がめん" title="くろい がめん"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 3h14v10H1z" fill="currentColor"/><path d="M3 5h10v6H3z" fill="#05070d"/></svg></button>
+            <button class="gmenuBtn gmenuMain" id="gMenuBtn"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 3h12v2H2zM2 7h12v2H2zM2 11h12v2H2z" fill="currentColor"/></svg>メニュー</button></div>
         </div>
         <div class="win gsay"><svg id="gChick" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="19" rx="11" ry="10" fill="#ffd23f"/><circle cx="13" cy="10.5" r="7" fill="#ffd23f"/><circle cx="11.2" cy="9.6" r="1.3" fill="#2b2b2b"/><path d="M5.2 11.4 1.6 12.6 5.4 13.6Z" fill="#ff8a2a"/></svg><div id="gMsg" aria-live="polite"></div></div>
       </div>
@@ -319,16 +342,13 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
         <div class="gtlColors" id="gtlColors"></div>
       </div>
     </div>
-    <div id="padBox"><canvas id="padC" aria-label="タッチパッド（スライドの縮小）"></canvas><div class="padTools"><button class="gmenuBtn" id="padReset" hidden>等倍に もどす</button><button class="gmenuBtn" id="gUndo">もどす</button><button class="gmenuBtn" id="gClear">ぜんぶけす</button></div><div id="padHint">なぞる＝つかう ／ はらう＝ページおくり ／ 2本ゆび＝かくだい</div></div>
     <div class="gnav"><button id="gPrev">◀ もどる</button><button id="gNext">すすむ ▶</button></div>
+    <div class="win" id="gAsk" hidden><p id="gAskMsg"></p><div class="gaskBtns"><button class="gmenuBtn" id="gAskYes">はい</button><button class="gmenuBtn" id="gAskNo">いいえ</button></div></div>
     <div class="win" id="gMenu" hidden>
       <div class="ttl">メニュー</div>
       <button data-gm="open">PDFを ひらく</button>
       <button data-gm="lib">しりょうばこ</button>
       <button data-gm="send" id="gmSend" hidden>PDFを あいてに おくる</button>
-      <button data-gm="full">ぜんがめん</button>
-      <button data-gm="grid">ページ いちらん</button>
-      <button data-gm="black">くろい がめん</button>
       <button data-gm="fit" id="gmFit">はばに あわせる：OFF</button>
       <button data-gm="target" id="gmTarget">もくひょう じかん：30ふん</button>
       <button data-gm="reset">タイマーを リセット</button>
@@ -3704,8 +3724,10 @@ game = (() => {
   const colorsBox = $('#gtlColors');
   function buildBagColors(){
     colorsBox.innerHTML = '';
-    for (const [type, label] of [['marker', 'マーカー'], ['pen', 'ペン']]){
-      const g = document.createElement('div'); g.className = 'cg'; g.textContent = label;
+    grid.querySelectorAll('.uline').forEach(u => { u.style.background = S.color[u.parentNode.dataset.t]; });
+    for (const [type, label] of [['marker', 'マーカーの いろ'], ['pen', 'ペンの いろ']]){
+      const g = document.createElement('div'); g.className = 'cg';
+      g.setAttribute('aria-label', label);
       for (const c of COLORS[type]){
         const b = document.createElement('button'); b.style.background = c; b.setAttribute('aria-label', label + 'の いろ');
         b.setAttribute('aria-pressed', String(S.color[type] === c));
@@ -3716,8 +3738,9 @@ game = (() => {
     }
   }
   const list = $('#gToolList'), grid = $('#gtlGrid');
-  WHEEL.forEach(t => {
+  ['nav', 'laser', 'arrow', 'spot', 'marker', 'eraser', 'zoom', 'pen'].forEach(t => {
     const b = document.createElement('button'); b.textContent = WNAME[t]; b.dataset.t = t;
+    if (t === 'marker' || t === 'pen'){ const u = document.createElement('span'); u.className = 'uline'; b.appendChild(u); }
     b.onclick = () => { list.hidden = true; setTool(t); };
     grid.appendChild(b);
   });
@@ -3784,6 +3807,35 @@ game = (() => {
   const TARGETS = [10, 15, 30, 45, 60, 90];
   const menuText = () => { $('#gmFit').textContent = 'はばに あわせる：' + (S.fitW ? 'ON' : 'OFF'); $('#gmTarget').textContent = 'もくひょう じかん：' + g.target + 'ふん'; $('#gTarget').textContent = 'もくひょう ' + g.target + 'ふん'; };
   $('#gMenuBtn').onclick = () => { menuText(); $('#gMenu').hidden = false; };
+  $('#gGrid').onclick = () => openPanel('grid');
+  $('#gFull').onclick = () => toggleFull();
+  $('#gBlack').onclick = () => toggleBlack('black');
+  const ask = (msg, yes) => {
+    $('#gAskMsg').textContent = msg; $('#gAsk').hidden = false;
+    $('#gAskYes').onclick = () => { $('#gAsk').hidden = true; yes(); };
+    $('#gAskNo').onclick = () => { $('#gAsk').hidden = true; };
+  };
+  /* long press: the time row resets the timer, the page row opens the page list; a short tap tells how */
+  function longPress(row, ms, onLong, onTap){
+    let t0 = 0, raf = 0, fired = false;
+    const stop = () => { cancelAnimationFrame(raf); row.classList.remove('pressing'); row.style.removeProperty('--lp'); t0 = 0; };
+    const tick = () => {
+      if (!t0) return;
+      const f = Math.min(1, (performance.now() - t0) / ms);
+      row.style.setProperty('--lp', (f * 100).toFixed(1) + '%');
+      if (f >= 1){ fired = true; stop(); onLong(); return; }
+      raf = requestAnimationFrame(tick);
+    };
+    row.classList.add('lp');
+    row.addEventListener('pointerdown', e => { fired = false; t0 = performance.now(); row.classList.add('pressing'); raf = requestAnimationFrame(tick); });
+    row.addEventListener('pointerup', () => { const was = t0; stop(); if (was && !fired) onTap(); });
+    row.addEventListener('pointerleave', stop); row.addEventListener('pointercancel', stop);
+    row.addEventListener('contextmenu', e => e.preventDefault());
+  }
+  const rows = document.querySelectorAll('.gstat .grow');
+  longPress(rows[1], 650, () => ask(`タイマーを リセットしますか？（いま ${$('#gTime').textContent}／もくひょう ${g.target}ふん）`, () => { g.resetTimer(); g.say('タイマーを リセットした！ よーい、どん！'); }),
+    () => g.say('じかんを ながおしすると タイマーを リセットできるぞ'));
+  longPress(rows[0], 500, () => openPanel('grid'), () => g.say('ページを ながおしすると いちらんが ひらくぞ'));
   $('#gMenu').addEventListener('click', e => {
     const b = e.target.closest('[data-gm]'); if (!b) return;
     const a = b.dataset.gm;
