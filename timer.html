@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OSCE 学習会タイマー</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      height: 100dvh;
+      background-color: #f8f9fa;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    
+    /* --- 画面①：シナリオ選択画面 --- */
+    #setup-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      padding: 20px;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    #setup-screen h1 { font-size: 1.5rem; color: #333; margin-bottom: 30px; }
+    .select-box {
+      width: 100%;
+      max-width: 320px;
+      padding: 15px;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      border: 2px solid #0066cc;
+      margin-bottom: 30px;
+      background-color: #fff;
+    }
+    .btn-next {
+      background-color: #0066cc;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 15px 40px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .btn-next:active { transform: translateY(2px); }
+    
+    /* --- 画面②：タイマー画面 --- */
+    #app-screen {
+      display: none;
+      flex-direction: column;
+      height: 100dvh;
+    }
+    #timer-section {
+      position: relative;
+      flex: 0 0 auto;
+      padding: 30px 0 15px 0;
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      z-index: 10;
+    }
+    /* 控えめな戻るボタン（左上） */
+    .btn-back {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background-color: transparent;
+      color: #aaa;
+      border: 1px solid #555;
+      padding: 5px 12px;
+      font-size: 0.85rem;
+      border-radius: 15px;
+      cursor: pointer;
+    }
+    #timer-display {
+      font-size: 22vw;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      transition: color 0.3s ease;
+      margin-bottom: 12px;
+    }
+    
+    #controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    #controls button {
+      font-size: 1.1rem;
+      padding: 12px 20px;
+      margin: 0 6px;
+      border: none;
+      border-radius: 30px;
+      font-weight: bold;
+      color: #fff;
+      cursor: pointer;
+    }
+    .btn-start { background-color: #28a745; width: 130px; }
+    .btn-seek { background-color: #444; font-size: 1.3rem !important; padding: 10px 20px !important; }
+    .btn-seek:active { background-color: #666; }
+    .btn-reset { background-color: #dc3545; font-size: 0.9rem; padding: 8px 20px; border: none; border-radius: 20px; color: #fff; font-weight: bold; cursor: pointer; }
+    .btn-disabled { background-color: #6c757d !important; opacity: 0.7; }
+    
+    /* 下半分：案内テキストエリア */
+    #text-section {
+      flex: 1;
+      background-color: #f8f9fa;
+      color: #333;
+      padding: 15px 20px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+    .header-text {
+      font-weight: bold;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 10px;
+      line-height: 1.5;
+    }
+    .instruction-block {
+      margin-bottom: 10px;
+      padding: 12px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+      opacity: 0.5;
+      cursor: pointer;
+    }
+    .instruction-block:active { transform: scale(0.98); background-color: #f0f0f0; }
+    .active-block {
+      opacity: 1;
+      background-color: #e6f7ff !important;
+      border-left: 6px solid #0066cc;
+    }
+    .block-title {
+      font-weight: bold;
+      font-size: 1.05em;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      color: #0066cc;
+    }
+    ul { margin: 5px 0 0 0; padding-left: 20px; }
+    li { margin-bottom: 3px; }
+  </style>
+</head>
+<body>
+
+  <!--
