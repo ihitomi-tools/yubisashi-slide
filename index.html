@@ -295,6 +295,15 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 #app.mland .gsub{display:none}
 .gib{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:44px;min-width:0;overflow:hidden;background:#1b2242;border:1px solid #3a4470;border-radius:8px;color:#dfe3ee;font:inherit;font-size:9.5px;cursor:pointer;padding:2px 0;white-space:nowrap}
 .gib svg{width:20px;height:20px;image-rendering:pixelated}
+@media (min-width:900px){
+  #app.mland .gicons{row-gap:10px;column-gap:8px}
+  #app.mland .gcr{gap:8px}
+  #app.mland .gcl{font-size:14px;padding-left:4px}
+  #app.mland .gib{height:84px;gap:6px;font-size:14px;border-radius:12px}
+  #app.mland .gib svg{width:42px;height:42px}
+  #app.mland .gnorm{height:84px;border-radius:12px}
+  #app.mland .gnorm svg{width:56px;height:56px}
+}
 .gib:active{transform:translateY(1px)}
 .gib.lp.pressing{background:linear-gradient(90deg,rgba(255,201,60,.35) var(--lp,0%),#1b2242 var(--lp,0%))}
 .padTools .inkT[hidden]{display:none}
