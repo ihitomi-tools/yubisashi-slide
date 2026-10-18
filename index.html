@@ -304,6 +304,54 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
   #app.mland .gnorm{height:84px;border-radius:12px}
   #app.mland .gnorm svg{width:56px;height:56px}
 }
+ /* iPad (mini) as the remote, held sideways: icons on top, wide bars and chick line, and the bag contents always out */
+@media (min-width:900px){
+  #app.mobile.remotePad.mland.bagDock{grid-template-rows:0 auto auto minmax(0,1fr) auto;row-gap:10px}
+  #app.remotePad.mland.bagDock #padBox{grid-row:1 / 6}
+  #app.remotePad.mland.bagDock .gicons{grid-row:2}
+  #app.remotePad.mland.bagDock .gtop{display:contents}
+  #app.remotePad.mland.bagDock .gleft{grid-column:2;grid-row:3;gap:8px}
+  #app.remotePad.mland.bagDock .gstat{padding:9px 14px;gap:7px;font-size:15px}
+  #app.remotePad.mland.bagDock .grow{gap:12px}
+  #app.remotePad.mland.bagDock .gbar{height:12px}
+  #app.remotePad.mland.bagDock .gbar i{height:12px}
+  #app.remotePad.mland.bagDock .gsay{padding:8px 14px;gap:12px}
+  #app.remotePad.mland.bagDock #gChick{width:36px;height:36px}
+  #app.remotePad.mland.bagDock #gMsg{font-size:15px;min-height:2.9em;line-height:1.45}
+  #app.remotePad.mland.bagDock .gbag{display:none}
+  #app.remotePad.mland.bagDock .gtoolList{display:flex!important;position:static;animation:none;grid-column:2;grid-row:4;align-self:start;padding:10px 14px;gap:10px;border-color:#ffc93c}
+  #app.remotePad.mland.bagDock .gtlHead{font-size:13px}
+  #app.remotePad.mland.bagDock #gtlClose{display:none}
+  #app.remotePad.mland.bagDock .gtlGrid{flex:0 0 auto;grid-auto-rows:minmax(60px,76px);gap:8px}
+  #app.remotePad.mland.bagDock .gtlGrid button{font-size:18px;min-height:60px;border-radius:12px;border-width:2px}
+  #app.remotePad.mland.bagDock .gtlGrid button[aria-pressed="true"]{background:#ffc93c;color:#2b1f00;border-color:#fff3c4;font-weight:700;box-shadow:0 0 0 3px rgba(255,201,60,.4),0 0 16px rgba(255,201,60,.5)}
+  #app.remotePad.mland.bagDock .gtlGrid button[aria-pressed="true"]::before{font-size:13px;margin-right:4px}
+  #app.remotePad.mland.bagDock .gtlGrid button .uline{height:5px;width:46%;box-shadow:0 0 0 1px #0c1020}
+  #app.remotePad.mland.bagDock .gtlColors{font-size:13px;gap:12px}
+  #app.remotePad.mland.bagDock .gtlColors .cg{gap:9px;padding-top:8px}
+  #app.remotePad.mland.bagDock .gtlColors button{width:34px;height:34px}
+  #app.remotePad.mland.bagDock .gtlColors button[aria-pressed="true"]{box-shadow:0 0 0 3px #ffc93c,0 0 10px rgba(255,201,60,.6)}
+  #app.remotePad.mland.bagDock .gnav{grid-row:5}
+  #app.remotePad.mland.bagDock .gnav button{height:56px;font-size:18px}
+}
+@media (min-width:900px) and (max-height:700px){
+  #app.mland .gib,#app.mland .gnorm{height:60px;gap:3px;font-size:13px}
+  #app.mland .gib svg{width:30px;height:30px}
+  #app.mland .gnorm svg{width:44px;height:44px}
+  #app.mland .gicons{row-gap:4px}
+  #app.mland .gcl{font-size:12px}
+  #app.mobile.remotePad.mland.bagDock{row-gap:6px}
+  #app.remotePad.mland.bagDock .gstat{padding:5px 12px;gap:3px;font-size:14px}
+  #app.remotePad.mland.bagDock .gsay{padding:4px 12px}
+  #app.remotePad.mland.bagDock #gChick{width:30px;height:30px}
+  #app.remotePad.mland.bagDock #gMsg{font-size:14px;min-height:1.5em}
+  #app.remotePad.mland.bagDock .gtoolList{padding:7px 12px;gap:6px}
+  #app.remotePad.mland.bagDock .gtlHead{display:none}
+  #app.remotePad.mland.bagDock .gtlGrid{grid-auto-rows:minmax(44px,48px);gap:6px}
+  #app.remotePad.mland.bagDock .gtlGrid button{min-height:44px;font-size:16px}
+  #app.remotePad.mland.bagDock .gtlColors button{width:30px;height:30px}
+  #app.remotePad.mland.bagDock .gnav button{height:48px}
+}
 .gib:active{transform:translateY(1px)}
 .gib.lp.pressing{background:linear-gradient(90deg,rgba(255,201,60,.35) var(--lp,0%),#1b2242 var(--lp,0%))}
 .padTools .inkT[hidden]{display:none}
@@ -3716,12 +3764,14 @@ game = (() => {
     const touchRemote = sync.role === 'remote' && matchMedia('(pointer: coarse)').matches;
     g.on = mode === 'phone' ? true : mode === 'normal' ? false : (mq.matches || mqL.matches || touchRemote);
     app.classList.toggle('mland', g.on && matchMedia('(orientation: landscape)').matches);
+    app.classList.toggle('bagDock', g.on && matchMedia('(orientation: landscape)').matches && matchMedia('(min-width: 900px)').matches);
+    try { if (app.classList.contains('bagDock')) g.syncBag(); } catch(_){}
     $('#phoneBtn').setAttribute('aria-pressed', String(g.on)); app.classList.toggle('mobile', g.on); panel.hidden = !g.on;
     if (!g.on) $('#gMenu').hidden = true;
     requestAnimationFrame(() => { layout(); g.layout(); });
   }
   g.apply = apply;
-  for (const m of [mq, mqL, matchMedia('(orientation: landscape)')]) { if (m.addEventListener) m.addEventListener('change', apply); else m.addListener(apply); }
+  for (const m of [mq, mqL, matchMedia('(orientation: landscape)'), matchMedia('(min-width: 900px)')]) { if (m.addEventListener) m.addEventListener('change', apply); else m.addListener(apply); }
   addEventListener('orientationchange', () => setTimeout(apply, 200));
   g.layout = () => {
     if (!g.on || !S.src || S.page < 0) return;
@@ -3818,6 +3868,7 @@ game = (() => {
   const drum = $('#gDrum'), bagCur = $('#bagCur');
   function renderWheel(t){
     if (!WNAME[t]) return;
+    try { if (app.classList.contains('bagDock')) g.syncBag(); } catch(_){}
     bagCur.textContent = WNAME[t];
     if (t === 'marker' || t === 'pen'){ const dot = document.createElement('span'); dot.className = 'bagDot'; dot.style.background = S.color[t]; bagCur.appendChild(dot); }
   }
@@ -3831,7 +3882,7 @@ game = (() => {
       for (const c of COLORS[type]){
         const b = document.createElement('button'); b.style.background = c; b.setAttribute('aria-label', label + 'の いろ');
         b.setAttribute('aria-pressed', String(S.color[type] === c));
-        b.onclick = () => { S.color[type] = c; store.set('color', S.color); list.hidden = true; setTool(type); };
+        b.onclick = () => { S.color[type] = c; store.set('color', S.color); list.hidden = true; setTool(type); syncBag(); };
         g.appendChild(b);
       }
       colorsBox.appendChild(g);
@@ -3844,10 +3895,14 @@ game = (() => {
     b.onclick = () => { list.hidden = true; setTool(S.tool === t ? 'nav' : t); };
     grid.appendChild(b);
   });
-  drum.onclick = () => {
+  function syncBag(){
     grid.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === S.tool || (S.tool === 'eraser' && b.dataset.t === g.lastInk))));
-    buildBagColors(); list.hidden = false;
-  };
+    buildBagColors();
+    const hd = list.querySelector('.gtlHead span');
+    if (hd) hd.textContent = app.classList.contains('bagDock') ? 'どうぐぶくろ（そうびちゅうの どうぐを もう一度 おすと てぶら）' : 'どうぐぶくろ（もう一度 おすと しまう）';
+  }
+  g.syncBag = syncBag;
+  drum.onclick = () => { syncBag(); list.hidden = false; };
   $('#gtlClose').onclick = () => { list.hidden = true; };
   renderWheel(S.tool);
   $('#gPrev').onclick = () => go(S.page - 1);
