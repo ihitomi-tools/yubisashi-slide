@@ -245,8 +245,27 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 #gNext{border:0;background:#ffc93c;color:#2b1f00}
 #gMenu{position:absolute;inset:8px;z-index:5;display:flex;flex-direction:column;gap:2px;padding:12px 16px;overflow:auto;background:#141a33}
 #gMenu button{background:transparent;border:0;color:#eef0f6;font:inherit;font-size:15px;text-align:left;padding:8px 0;cursor:pointer}
-#gMenu button::before{content:"\25B6\3000";color:transparent}
-#gMenu button:hover::before,#gMenu button:focus-visible::before{color:#ffc93c}
+#gMenu button::before{display:none}
+#gMenu{display:grid;grid-template-columns:1fr;gap:10px;align-content:start;padding:16px}
+#gMenu .ttl{grid-column:1 / -1;font-size:14px;margin:0 0 2px}
+#gMenu > button{min-height:56px;padding:10px 16px;font-size:17px;background:#1b2242;border:1px solid #3a4470;border-radius:12px;display:flex;align-items:center}
+#gMenu > button:active{background:#242d57}
+#gMenu > button[data-gm="close"]{position:sticky;bottom:0;grid-column:1 / -1;justify-content:center;background:#ffc93c;color:#2b1f00;border-color:#ffc93c;font-weight:700}
+.gmTimer{grid-column:1 / -1;display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid #3a4470;border-radius:12px;background:#141a33}
+.gmL{font-size:13px;color:#9aa3c4}
+.gmT{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+#gMenu .gmT button{padding:0;text-align:center;height:64px;font:inherit;font-size:24px;font-variant-numeric:tabular-nums;color:#eef0f6;background:#1b2242;border:1px solid #3a4470;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;line-height:1.1}
+#gMenu .gmT button small{font-size:11px;color:#9aa3c4}
+#gMenu .gmT button[aria-pressed="true"]{background:#ffc93c;color:#2b1f00;border-color:#fff3c4;font-weight:700;box-shadow:0 0 0 3px rgba(255,201,60,.4)}
+#gMenu .gmT button[aria-pressed="true"] small{color:#5a4300}
+@media (min-width:600px){
+  #gMenu{grid-template-columns:1fr 1fr;gap:14px;padding:22px 26px}
+  #gMenu > button{min-height:76px;font-size:21px}
+  #gMenu .gmT button{height:84px;font-size:30px}
+  #gMenu .gmT button small{font-size:13px}
+  .gmL{font-size:15px}
+}
+@media (max-width:420px){ .gmT{grid-template-columns:repeat(3,minmax(0,1fr))} }
 #gMenu .ttl{font-size:12px;color:#9aa3c4;margin-bottom:4px}
  /* phone held sideways: slide, status and buttons on the left, a big touch pad on the right */
 #app.mobile.mland,#app.mobile.mland.immersive{grid-template-columns:minmax(0,1fr) minmax(0,42%);grid-template-rows:var(--stageH,40vh) 1fr auto auto;column-gap:8px;row-gap:6px;background:#0c1020;
@@ -451,7 +470,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
       <button data-gm="lib">ルーラ（とりこんだ しりょう）</button>
       <button data-gm="send" id="gmSend" hidden>PDFを あいてに おくる</button>
       <button data-gm="fit" id="gmFit">はばに あわせる：OFF</button>
-      <button data-gm="target" id="gmTarget">もくひょう じかん：30ふん</button>
+      <div class="gmTimer"><span class="gmL">もくひょう じかん（タップで きめる）</span><div class="gmT" id="gmT"><button data-gt="10">10<small>ふん</small></button><button data-gt="15">15<small>ふん</small></button><button data-gt="30">30<small>ふん</small></button><button data-gt="45">45<small>ふん</small></button><button data-gt="60">60<small>ふん</small></button><button data-gt="90">90<small>ふん</small></button></div></div>
       <button data-gm="reset">タイマーを リセット</button>
       <button data-gm="link" id="gmLink" hidden>リモコン／スクリーン</button>
       <button data-gm="layout">ふつうの 画面に する</button>
@@ -3966,7 +3985,7 @@ game = (() => {
   $('#padReset').onclick = () => g.setPv(null);
   padC.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !ptr.down) ptr.in = false; });
   const TARGETS = [10, 15, 30, 45, 60, 90];
-  const menuText = () => { $('#gmFit').textContent = 'はばに あわせる：' + (S.fitW ? 'ON' : 'OFF'); $('#gmTarget').textContent = 'もくひょう じかん：' + g.target + 'ふん'; $('#gTarget').textContent = 'もくひょう ' + g.target + 'ふん'; };
+  const menuText = () => { $('#gmFit').textContent = 'はばに あわせる：' + (S.fitW ? 'ON' : 'OFF'); document.querySelectorAll('#gmT [data-gt]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.gt === g.target))); $('#gTarget').textContent = 'もくひょう ' + g.target + 'ふん'; };
   $('#gMenuBtn').onclick = () => { menuText(); $('#gMenu').hidden = false; };
   $('#gGrid').onclick = () => openPanel('grid');
   $('#gFitW').onclick = () => { setFit(!S.fitW); g.say(S.fitW ? 'はばに あわせたぞ（たてながの しりょう むき）' : 'ページ ぜんたいを みせるぞ'); };
@@ -4017,9 +4036,10 @@ game = (() => {
   $('#giTimer').addEventListener('click', e => { e.stopPropagation(); if (!$('#giTimer').dataset.long) nextTarget(); delete $('#giTimer').dataset.long; }, true);
   longPress(rows[0], 500, () => openPanel('grid'), () => g.say('ページを ながおしすると いちらんが ひらくぞ'));
   $('#gMenu').addEventListener('click', e => {
+    const gt = e.target.closest('[data-gt]');
+    if (gt){ g.target = +gt.dataset.gt; store.set('target', g.target); menuText(); g.say(`もくひょう じかんを ${g.target}ふんに したぞ！`); return; }
     const b = e.target.closest('[data-gm]'); if (!b) return;
     const a = b.dataset.gm;
-    if (a === 'target'){ g.target = TARGETS[(TARGETS.indexOf(g.target) + 1) % TARGETS.length]; store.set('target', g.target); menuText(); return; }
     if (a === 'fit'){ setFit(!S.fitW); menuText(); return; }
     $('#gMenu').hidden = true;
     if (a === 'open') $('#file').click();
