@@ -429,6 +429,18 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 .hasMore > .moreHint{opacity:1}
 @keyframes mhBob{50%{transform:translateY(3px)}}
 @media (prefers-reduced-motion:reduce){.moreHint span b{animation:none}}
+
+.gnextArea.hz:not([hidden]){display:flex;direction:rtl;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden;touch-action:pan-x}
+.hz .gnaGrid{display:flex;direction:rtl;flex:none;gap:6px;height:100%;--cols:1}
+.hz .gnaCard{direction:ltr;flex:none;height:100%}
+.hz .gnaEnd{order:2;flex:none;direction:ltr;width:96px;padding:0 8px}
+.gnaMore{position:absolute;z-index:3;pointer-events:none;display:none;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#2b1f00}
+.gnaMore.on{display:flex}
+.gnaMore b{background:#ffc93c;border-radius:999px;padding:3px 12px;box-shadow:0 2px 6px rgba(0,0,0,.4);animation:mhBob 1.2s ease-in-out infinite}
+.gnaMore.v{background:linear-gradient(to bottom,rgba(12,16,32,0),rgba(12,16,32,.95) 75%);align-items:flex-end;padding-bottom:4px;border-radius:0 0 8px 8px}
+.gnaMore.h{background:linear-gradient(to right,rgba(12,16,32,.95) 20%,rgba(12,16,32,0));border-radius:8px 0 0 8px;justify-content:flex-start;padding-left:4px}
+.gnaMore b{white-space:nowrap}
+.gnaMore.h b{padding:8px 8px;font-size:12px}
 </style>
 
 <div id="app">
@@ -3939,6 +3951,7 @@ game = (() => {
 
   /* upcoming slides area (view only; scrolls with one finger; long press on a slide = big peek) */
   const area = $('#gNextArea'), naGrid = $('#gNaGrid'), naEnd = $('#gNaEnd');
+  const naMore = document.createElement('div'); naMore.className = 'gnaMore'; naMore.setAttribute('aria-hidden', 'true'); padBox.appendChild(naMore);
   let naSrc = null, naGen = 0, naPage = -1, naKey = '', naPw = 400, naQ = Promise.resolve();
   const naIO = ('IntersectionObserver' in window) ? new IntersectionObserver(es => {
     for (const en of es){
@@ -3946,7 +3959,7 @@ game = (() => {
       if (en.isIntersecting){ if (!card.dataset.r) naRender(card); }
       else if (card.dataset.r){ delete card.dataset.r; card.firstChild.width = 1; card.firstChild.height = 1; }
     }
-  }, { root: area, rootMargin: '320px 0px' }) : null;
+  }, { root: area, rootMargin: '320px 320px' }) : null;
   function naRender(card){
     card.dataset.r = '1'; const gen = naGen, pw = naPw;
     naQ = naQ.then(async () => {
@@ -3975,12 +3988,14 @@ game = (() => {
     }
     areaOn = true; area.hidden = false; padBox.classList.add('naOn'); nbox.hidden = true;
     if (naSrc !== S.src) naBuild();
-    const st = area.style;
-    if (plan.mode === 'bottom'){ st.left = '8px'; st.right = '8px'; st.bottom = '8px'; st.top = 'auto'; st.width = 'auto'; st.height = plan.size + 'px'; }
+    const st = area.style, hz = plan.mode === 'bottom';
+    area.classList.toggle('hz', hz);
+    if (hz){ st.left = '8px'; st.right = '8px'; st.bottom = '8px'; st.top = 'auto'; st.width = 'auto'; st.height = plan.size + 'px'; }
     else { st.right = '8px'; st.top = '42px'; st.bottom = '8px'; st.left = 'auto'; st.height = 'auto'; st.width = plan.size + 'px'; }
-    const inner = (plan.mode === 'bottom' ? r.width - 16 : plan.size) - 14;
-    const cols = plan.mode === 'bottom' ? Math.max(1, Math.min(3, Math.floor((inner + 6) / 256))) : 1;
-    const cardW = (inner - (cols - 1) * 6) / cols, dpr = Math.min(window.devicePixelRatio || 1, 2), key = cols + ':' + Math.round(cardW / 24);
+    const inner = (hz ? r.width - 16 : plan.size) - 14;
+    const cols = 1;
+    const cardH = hz ? plan.size - 14 - 2 : 0;
+    const cardW = hz ? cardH * (S.src.size(Math.min(S.page + 1, S.src.count - 1)).w / S.src.size(Math.min(S.page + 1, S.src.count - 1)).h) : inner, dpr = Math.min(window.devicePixelRatio || 1, 2), key = (hz ? 'h' : 'v') + ':' + Math.round(cardW / 24) + ':' + Math.round(cardH / 12);
     naGrid.style.setProperty('--cols', cols); naPw = Math.max(120, Math.round(cardW * dpr));
     const ch = naGrid.children;
     if (key !== naKey){
@@ -3990,8 +4005,23 @@ game = (() => {
     }
     for (let i = 0; i < ch.length; i++) ch[i].hidden = i <= S.page;
     naEnd.hidden = S.page < ch.length - 1;
-    if (naPage !== S.page){ naPage = S.page; area.scrollTop = 0; }
+    if (naPage !== S.page){ naPage = S.page; area.scrollTop = 0; area.scrollLeft = 0; }
+    naCue();
   };
+  function naCue(){
+    if (!areaOn){ naMore.classList.remove('on'); return; }
+    const hz = area.classList.contains('hz');
+    const rest = hz ? area.scrollWidth - area.clientWidth - Math.abs(area.scrollLeft) : area.scrollHeight - area.clientHeight - area.scrollTop;
+    const on = rest > 6;
+    naMore.classList.toggle('on', on); naMore.classList.toggle('h', hz); naMore.classList.toggle('v', !hz);
+    if (!on) return;
+    const o = area.getBoundingClientRect(), pb = padBox.getBoundingClientRect();
+    const st = naMore.style;
+    if (hz){ st.left = (o.left - pb.left + 1) + 'px'; st.top = (o.top - pb.top + 1) + 'px'; st.width = '86px'; st.height = (o.height - 2) + 'px'; st.right = 'auto'; naMore.innerHTML = '<b>◀ つづき</b>'; }
+    else { st.left = (o.left - pb.left + 1) + 'px'; st.top = (o.bottom - pb.top - 41) + 'px'; st.width = (o.width - 2) + 'px'; st.height = '40px'; st.right = 'auto'; naMore.innerHTML = '<b>▼ つづき</b>'; }
+  }
+  area.addEventListener('scroll', naCue, { passive: true });
+  g.naCue = naCue;
   let clp = 0, cStart = null;
   const cStop = () => { clearTimeout(clp); cStart = null; if (nbigOn){ nbigOn = false; nbig.hidden = true; } };
   area.addEventListener('pointerdown', e => {
