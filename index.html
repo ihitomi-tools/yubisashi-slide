@@ -3703,13 +3703,16 @@ game = (() => {
   });
   function apply(){
     const mode = store.get('layoutMode', 'auto');
-    g.on = mode === 'phone' ? true : mode === 'normal' ? false : (mq.matches || mqL.matches);
-    app.classList.toggle('mland', g.on && matchMedia('(orientation: landscape)').matches && (app.clientHeight || innerHeight) < 600);
+    /* a touch device used as the remote (an iPad too) always gets the game panel */
+    const touchRemote = sync.role === 'remote' && matchMedia('(pointer: coarse)').matches;
+    g.on = mode === 'phone' ? true : mode === 'normal' ? false : (mq.matches || mqL.matches || touchRemote);
+    app.classList.toggle('mland', g.on && matchMedia('(orientation: landscape)').matches);
     $('#phoneBtn').setAttribute('aria-pressed', String(g.on)); app.classList.toggle('mobile', g.on); panel.hidden = !g.on;
     if (!g.on) $('#gMenu').hidden = true;
     requestAnimationFrame(() => { layout(); g.layout(); });
   }
-  for (const m of [mq, mqL]) { if (m.addEventListener) m.addEventListener('change', apply); else m.addListener(apply); }
+  g.apply = apply;
+  for (const m of [mq, mqL, matchMedia('(orientation: landscape)')]) { if (m.addEventListener) m.addEventListener('change', apply); else m.addListener(apply); }
   addEventListener('orientationchange', () => setTimeout(apply, 200));
   g.layout = () => {
     if (!g.on || !S.src || S.page < 0) return;
@@ -4244,6 +4247,7 @@ const aesKey = () => crypto.subtle.importKey('raw', sync.key, 'AES-GCM', false, 
 function roleUI(){
   const on = sync.role !== 'off';
   app.classList.toggle('remotePad', sync.role === 'remote');
+  if (game && game.apply) game.apply();
   $('#fbSend').hidden = !on; $('#gmSend').hidden = !on; $('#giSend').hidden = !on;
   $('#qrShow').hidden = sync.role !== 'screen'; $('#qrNew').hidden = sync.role !== 'screen';
   if (sync.role !== 'screen'){ $('#qrBox').hidden = true; }
