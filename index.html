@@ -287,6 +287,25 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 #app.mland .gtlGrid button{font-size:12px;white-space:nowrap;padding:0 2px;min-height:30px}
 #app.mland #gMsg{font-size:11.5px;line-height:1.4;min-height:2.8em}
 #app.mland .gsay{padding:3px 8px}
+ /* next-page thumbnail on the remote pad (only on this device; long press = big peek) */
+#padBox{position:relative}
+.gnextBox{display:none;position:absolute;left:8px;top:8px;z-index:3;line-height:0;background:#0c1020;border:2px solid #dfe3ee;border-radius:6px;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:pointer;box-shadow:0 2px 0 #070a16}
+#app.remotePad .gnextBox:not([hidden]){display:block}
+.gnextBox canvas{display:block;width:auto;height:auto;max-width:92px;max-height:56px;background:#fff}
+.gnLab{position:absolute;right:2px;bottom:2px;font-size:10px;line-height:1;color:#ffc93c;background:rgba(12,16,32,.85);padding:2px 4px;border-radius:3px}
+.gnextBig{position:absolute;inset:0;z-index:6;display:grid;place-items:center;background:rgba(12,16,32,.95);pointer-events:none;border-radius:6px}
+.gnextBig canvas{max-width:94%;max-height:84%;width:auto;height:auto;border:2px solid #dfe3ee;border-radius:6px;background:#fff}
+.gnextBig .gnbLab{position:absolute;left:0;right:0;bottom:10px;text-align:center;color:#ffc93c;font-size:15px}
+@media (min-width:700px){
+  .gnextBox{left:12px;top:12px}
+  .gnextBox canvas{max-width:150px;max-height:92px}
+  .gnLab{font-size:12px}
+}
+@media (max-height:500px){
+  .gnextBox{left:6px;top:5px}
+  .gnextBox canvas{max-width:60px;max-height:34px}
+  .gnLab{font-size:9px;padding:1px 3px}
+}
  /* left-right swap: pad on the right, controls on the left */
 #app.mobile.mland.swapLR,#app.mobile.mland.swapLR.immersive{grid-template-columns:minmax(0,42%) minmax(0,1fr);--pc:2;--sc:1}
 #app.mland.swapLR #gAsk{right:auto;left:12px}
@@ -439,7 +458,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
   </main>
 
   <section id="game" hidden aria-label="操作パネル">
-    <div id="padBox"><canvas id="padC" aria-label="タッチパッド（スライドの縮小）"></canvas><div class="padTools"><button class="gmenuBtn" id="padReset" hidden>等倍に もどす</button><button class="gmenuBtn inkT" id="gErase" aria-pressed="false">けしゴム</button><button class="gmenuBtn inkT" id="gUndo">もどす</button><button class="gmenuBtn inkT" id="gClear">ぜんぶけす</button></div><div id="padHint">なぞる＝つかう ／ はらう＝ページおくり ／ 2本ゆび＝かくだい</div></div>
+    <div id="padBox"><canvas id="padC" aria-label="タッチパッド（スライドの縮小）"></canvas><div class="gnextBox" id="gNextBox" hidden title="つぎの ページ（ながおしで おおきく）"><canvas id="gNextC" width="160" height="90"></canvas><span class="gnLab">つぎ</span></div><div class="gnextBig" id="gNextBig" hidden><canvas id="gNextBigC" width="16" height="9"></canvas><span class="gnbLab" id="gNextBigLab"></span></div><div class="padTools"><button class="gmenuBtn" id="padReset" hidden>等倍に もどす</button><button class="gmenuBtn inkT" id="gErase" aria-pressed="false">けしゴム</button><button class="gmenuBtn inkT" id="gUndo">もどす</button><button class="gmenuBtn inkT" id="gClear">ぜんぶけす</button></div><div id="padHint">なぞる＝つかう ／ はらう＝ページおくり ／ 2本ゆび＝かくだい</div></div>
     <div class="gtop">
       <div class="gleft">
         <div class="win gstat">
@@ -3796,6 +3815,7 @@ game = (() => {
     try { if (app.classList.contains('bagDock')) g.syncBag(); } catch(_){}
     $('#phoneBtn').setAttribute('aria-pressed', String(g.on)); app.classList.toggle('mobile', g.on); panel.hidden = !g.on;
     if (!g.on) $('#gMenu').hidden = true;
+    if (g.drawNextThumb) g.drawNextThumb();
     requestAnimationFrame(() => { layout(); g.layout(); });
   }
   g.apply = apply;
@@ -3849,7 +3869,46 @@ game = (() => {
     }
     if (g.dirty || ptr.down || fxActive()){ drawPad(); g.dirty = false; g.inkTools(); }
   };
+  /* next-page thumbnail (remote pad only; nothing is sent to the screen) */
+  const nbox = $('#gNextBox'), nc = $('#gNextC'), nbig = $('#gNextBig'), nbc = $('#gNextBigC');
+  let nseq = 0, nlp = 0, nbigOn = false;
+  async function nextImg(target, pw, endW, endH, endFont){
+    const j = S.page + 1;
+    if (j >= S.src.count){
+      target.width = endW; target.height = endH; const x = target.getContext('2d');
+      x.fillStyle = '#eef0f5'; x.fillRect(0, 0, endW, endH);
+      x.fillStyle = '#5c6477'; x.font = '700 ' + endFont + 'px "M PLUS Rounded 1c", sans-serif'; x.textAlign = 'center'; x.fillText('おわり', endW / 2, endH / 2 + endFont * .35);
+      return true;
+    }
+    const t = document.createElement('canvas'); await S.src.render(j, t, pw);
+    target.width = t.width; target.height = t.height; target.getContext('2d').drawImage(t, 0, 0);
+    return true;
+  }
+  async function drawNextThumb(){
+    const my = ++nseq;
+    const show = !!(g.on && S.src && S.page >= 0 && app.classList.contains('remotePad'));
+    nbox.hidden = !show;
+    if (!show){ nbigOn = false; nbig.hidden = true; return; }
+    try { await nextImg(nc, 280, 160, 90, 26); if (my !== nseq) return; } catch(_){}
+    if (nbigOn) showNextBig();
+  }
+  async function showNextBig(){
+    if (!S.src || S.page < 0) return;
+    const my = ++nseq, n = S.src.count, j = S.page + 1;
+    $('#gNextBigLab').textContent = j >= n ? 'これが さいごの ページだ' : `つぎの ページ ${j + 1} / ${n}`;
+    try { await nextImg(nbc, Math.min(1400, Math.round(Math.max(600, padBox.clientWidth) * Math.min(window.devicePixelRatio || 1, 2))), 640, 360, 80); } catch(_){}
+    if (nbigOn) nbig.hidden = false;
+  }
+  g.drawNextThumb = drawNextThumb;
+  nbox.addEventListener('pointerdown', e => {
+    e.preventDefault(); try { nbox.setPointerCapture(e.pointerId); } catch(_){}
+    clearTimeout(nlp); nlp = setTimeout(() => { nbigOn = true; showNextBig(); }, 380);
+  });
+  const nEnd = () => { clearTimeout(nlp); const was = nbigOn; nbigOn = false; nbig.hidden = true; if (!was) g.say('つぎの ページだ。ながおしすると おおきく みえるぞ'); };
+  nbox.addEventListener('pointerup', nEnd); nbox.addEventListener('pointercancel', nEnd);
+  nbox.addEventListener('contextmenu', e => e.preventDefault());
   g.page = (prev, i) => {
+    drawNextThumb();
     g.combo = 0; g.dirty = true; g.setPv(null);
     const n = S.src.count, f = (i + 1) / n;
     $('#gPage').textContent = `${i + 1}/${n}`;
