@@ -4562,7 +4562,7 @@ async function sendPdf(){
   const f = S.src.file;
   if (f.size > 40e6){ toast('40MBより 大きい PDFは おくれません'); return; }
   sync.sending = true; closePanels(); $('#sendAsk').hidden = true; $('#fbSend').classList.remove('hot');
-  const node = sync.base.child('file');
+  const node = sync.base.child('file'); let stage = 'じゅんび';
   try {
     toast('PDFを じゅんびしています…', 60000);
     const name = new TextEncoder().encode(f.name), data = new Uint8Array(await f.arrayBuffer());
@@ -4570,7 +4570,7 @@ async function sendPdf(){
     new DataView(plain.buffer).setUint32(0, name.length); plain.set(name, 4); plain.set(data, 4 + name.length);
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await aesKey(), plain));
-    await node.remove();
+    stage = 'つうしん'; await node.remove();
     await node.onDisconnect().remove();
     await node.child('s').set(firebase.database.ServerValue.TIMESTAMP);
     const CH = 384 * 1024, n = Math.max(1, Math.ceil(ct.length / CH));
@@ -4584,7 +4584,7 @@ async function sendPdf(){
     sayOrToast('PDFを おくった！ あいてが うけとると 自動で きえるぞ', 4000);
   } catch(e){
     node.remove().catch(() => {});
-    toast('PDFを おくれませんでした（' + ((e && (e.code || e.message)) || '不明') + '）', 5000);
+    toast('PDFを おくれませんでした［' + stage + '］' + ((e && (e.code || e.message)) || '不明') + '（' + Math.round(f.size / 1024) + 'KB）／もういちど ためしてね', 20000);
   } finally { sync.sending = false; }
 }
 async function receivePdf(m){
