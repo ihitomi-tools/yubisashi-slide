@@ -421,6 +421,14 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 @keyframes squish{30%{transform:scale(1.25,.7)}60%{transform:scale(.85,1.2)}}
 @keyframes bounce{0%,100%{transform:translateY(0)}20%{transform:translateY(-9px)}40%{transform:translateY(0)}60%{transform:translateY(-5px)}80%{transform:translateY(0)}}
 @media (prefers-reduced-motion:reduce){#gChick{animation:none!important}*{transition:none!important}.bagIco,.gtoolList{animation:none!important}#gChick.hop,#gTimeBar.over{animation:none}}
+
+/* "more below" cue for scroll areas that are cut off */
+.moreHint{grid-column:1 / -1;position:sticky;bottom:0;height:0;overflow:visible;pointer-events:none;z-index:6;opacity:0;transition:opacity .2s;margin:0}
+.moreHint span{position:absolute;left:0;right:0;bottom:0;height:46px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;font-size:13px;font-weight:700;color:#2b1f00;background:linear-gradient(to bottom,rgba(20,26,51,0),rgba(20,26,51,.95) 70%)}
+.moreHint span b{background:#ffc93c;border-radius:999px;padding:3px 14px;box-shadow:0 2px 6px rgba(0,0,0,.4);animation:mhBob 1.2s ease-in-out infinite}
+.hasMore > .moreHint{opacity:1}
+@keyframes mhBob{50%{transform:translateY(3px)}}
+@media (prefers-reduced-motion:reduce){.moreHint span b{animation:none}}
 </style>
 
 <div id="app">
@@ -4134,9 +4142,21 @@ game = (() => {
   padC.addEventListener('pointercancel', padEnd);
   $('#padReset').onclick = () => g.setPv(null);
   padC.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !ptr.down) ptr.in = false; });
+
+  /* scroll cue: a bobbing "▼ まだ つづく" pill while there is more content below */
+  for (const id of ['gMenu', 'gIcons']){
+    const el = $('#' + id); if (!el) continue;
+    const h = document.createElement('div'); h.className = 'moreHint'; h.setAttribute('aria-hidden', 'true');
+    h.innerHTML = '<span><b>▼ まだ つづくよ</b></span>'; el.appendChild(h);
+    const upd = () => el.classList.toggle('hasMore', el.scrollHeight - el.scrollTop - el.clientHeight > 6 && el.offsetParent !== null);
+    el.addEventListener('scroll', upd, { passive: true });
+    if (window.ResizeObserver) new ResizeObserver(upd).observe(el);
+    new MutationObserver(upd).observe(el, { attributes: true, attributeFilter: ['hidden', 'class'] });
+    window.addEventListener('resize', upd); g['cue_' + id] = upd; setTimeout(upd, 300);
+  }
   const TARGETS = [10, 15, 30, 45, 60, 90];
   const menuText = () => { $('#gmFit').textContent = 'はばに あわせる：' + (S.fitW ? 'ON' : 'OFF'); document.querySelectorAll('#gmT [data-gt]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.gt === g.target))); $('#gTarget').textContent = 'もくひょう ' + g.target + 'ふん'; };
-  $('#gMenuBtn').onclick = () => { menuText(); $('#gMenu').hidden = false; };
+  $('#gMenuBtn').onclick = () => { menuText(); $('#gMenu').hidden = false; setTimeout(() => g.cue_gMenu && g.cue_gMenu(), 30); };
   $('#gGrid').onclick = () => openPanel('grid');
   $('#gFitW').onclick = () => { setFit(!S.fitW); g.say(S.fitW ? 'はばに あわせたぞ（たてながの しりょう むき）' : 'ページ ぜんたいを みせるぞ'); };
   const nextTarget = () => { g.target = TARGETS[(TARGETS.indexOf(g.target) + 1) % TARGETS.length]; store.set('target', g.target); menuText(); g.say(`もくひょう じかんを ${g.target}ふんに したぞ！（ながおしで リセット）`); };
