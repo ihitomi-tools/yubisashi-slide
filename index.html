@@ -430,27 +430,27 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 @keyframes mhBob{50%{transform:translateY(3px)}}
 @media (prefers-reduced-motion:reduce){.moreHint span b{animation:none}}
 
-.gnextArea.hz:not([hidden]){display:flex;direction:rtl;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden;touch-action:pan-x}
-.hz .gnaGrid{display:flex;direction:rtl;flex:none;gap:6px;height:100%;--cols:1}
+.gnextArea.hz:not([hidden]){display:flex;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden;touch-action:pan-x}
+.hz .gnaGrid{display:flex;flex:none;gap:6px;height:100%;--cols:1}
 .hz .gnaCard{direction:ltr;flex:none;height:100%}
 .hz .gnaEnd{order:2;flex:none;direction:ltr;width:96px;padding:0 8px}
 .gnaMore{position:absolute;z-index:3;pointer-events:none;display:none;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#2b1f00}
 .gnaMore.on{display:flex}
 .gnaMore b{background:#ffc93c;border-radius:999px;padding:3px 12px;box-shadow:0 2px 6px rgba(0,0,0,.4);animation:mhBob 1.2s ease-in-out infinite}
 .gnaMore.v{background:linear-gradient(to bottom,rgba(12,16,32,0),rgba(12,16,32,.95) 75%);align-items:flex-end;padding-bottom:4px;border-radius:0 0 8px 8px}
-.gnaMore.h{background:linear-gradient(to right,rgba(12,16,32,.95) 20%,rgba(12,16,32,0));border-radius:8px 0 0 8px;justify-content:flex-start;padding-left:4px}
+.gnaMore.h{background:linear-gradient(to left,rgba(12,16,32,.95) 20%,rgba(12,16,32,0));border-radius:0 8px 8px 0;justify-content:flex-end;padding-right:4px}
 .gnaMore b{white-space:nowrap}
 .gnaMore.h b{padding:8px 8px;font-size:12px}
 
 /* phone landscape: one horizontal row of icons that you swipe sideways */
-#app.mland:not(.bagDock) .gicons{display:flex;flex-direction:row;flex-wrap:nowrap;gap:10px;align-items:flex-start;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;padding:1px 2px 2px}
-#app.mland:not(.bagDock) .gcat{flex:none;grid-column:auto}
-#app.mland:not(.bagDock) .gcr{display:flex;gap:4px}
-#app.mland:not(.bagDock) .gib,#app.mland:not(.bagDock) .gnorm{flex:none;width:62px}
-#app.mland:not(.bagDock) .gib{font-size:10px}
-#app.mland:not(.bagDock) .gicons > .moreHint{flex:none;grid-column:auto;position:sticky;right:0;bottom:auto;width:0;height:44px;margin:0 0 0 -10px;align-self:flex-start}
-#app.mland:not(.bagDock) .gicons > .moreHint span b{white-space:nowrap;font-size:11px;padding:3px 8px}
-#app.mland:not(.bagDock) .gicons > .moreHint span{left:auto;right:0;top:0;bottom:0;width:78px;height:auto;align-items:center;justify-content:flex-end;padding:0 2px 0 0;background:linear-gradient(to right,rgba(20,26,51,0),rgba(20,26,51,.95) 55%)}
+#app.mland:not(.bagDock) .gicons.hzI{display:flex;flex-direction:row;flex-wrap:nowrap;gap:10px;align-items:flex-start;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;padding:1px 2px 2px}
+#app.mland:not(.bagDock) .gicons.hzI .gcat{flex:none;grid-column:auto}
+#app.mland:not(.bagDock) .gicons.hzI .gcr{display:flex;gap:4px}
+#app.mland:not(.bagDock) .gicons.hzI .gib,#app.mland:not(.bagDock) .gicons.hzI .gnorm{flex:none;width:62px}
+#app.mland:not(.bagDock) .gicons.hzI .gib{font-size:10px}
+#app.mland:not(.bagDock) .gicons.hzI > .moreHint{flex:none;grid-column:auto;position:sticky;right:0;bottom:auto;width:0;height:44px;margin:0 0 0 -10px;align-self:flex-start}
+#app.mland:not(.bagDock) .gicons.hzI > .moreHint span b{white-space:nowrap;font-size:11px;padding:3px 8px}
+#app.mland:not(.bagDock) .gicons.hzI > .moreHint span{left:auto;right:0;top:0;bottom:0;width:78px;height:auto;align-items:center;justify-content:flex-end;padding:0 2px 0 0;background:linear-gradient(to right,rgba(20,26,51,0),rgba(20,26,51,.95) 55%)}
 </style>
 
 <div id="app">
@@ -4022,13 +4022,13 @@ game = (() => {
   function naCue(){
     if (!areaOn){ naMore.classList.remove('on'); return; }
     const hz = area.classList.contains('hz');
-    const rest = hz ? area.scrollWidth - area.clientWidth - Math.abs(area.scrollLeft) : area.scrollHeight - area.clientHeight - area.scrollTop;
+    const rest = hz ? area.scrollWidth - area.clientWidth - area.scrollLeft : area.scrollHeight - area.clientHeight - area.scrollTop;
     const on = rest > 6;
     naMore.classList.toggle('on', on); naMore.classList.toggle('h', hz); naMore.classList.toggle('v', !hz);
     if (!on) return;
     const o = area.getBoundingClientRect(), pb = padBox.getBoundingClientRect();
     const st = naMore.style;
-    if (hz){ st.left = (o.left - pb.left + 1) + 'px'; st.top = (o.top - pb.top + 1) + 'px'; st.width = '86px'; st.height = (o.height - 2) + 'px'; st.right = 'auto'; naMore.innerHTML = '<b>◀ つづき</b>'; }
+    if (hz){ st.left = (o.right - pb.left - 87) + 'px'; st.top = (o.top - pb.top + 1) + 'px'; st.width = '86px'; st.height = (o.height - 2) + 'px'; st.right = 'auto'; naMore.innerHTML = '<b>つづき ▶</b>'; }
     else { st.left = (o.left - pb.left + 1) + 'px'; st.top = (o.bottom - pb.top - 41) + 'px'; st.width = (o.width - 2) + 'px'; st.height = '40px'; st.right = 'auto'; naMore.innerHTML = '<b>▼ つづき</b>'; }
   }
   area.addEventListener('scroll', naCue, { passive: true });
@@ -4190,14 +4190,19 @@ game = (() => {
     const h = document.createElement('div'); h.className = 'moreHint'; h.setAttribute('aria-hidden', 'true');
     h.innerHTML = '<span><b>▼ まだ つづくよ</b></span>'; el.appendChild(h);
     const upd = () => {
-      const hz = getComputedStyle(el).flexDirection === 'row' && getComputedStyle(el).display === 'flex';
+      if (id === 'gIcons'){
+        el.classList.remove('hzI');
+        if (el.offsetParent !== null && el.scrollHeight - el.clientHeight > 2) el.classList.add('hzI');
+      }
+      const hz = el.classList.contains('hzI');
       const rest = hz ? el.scrollWidth - el.clientWidth - el.scrollLeft : el.scrollHeight - el.scrollTop - el.clientHeight;
       h.firstChild.firstChild.textContent = hz ? 'つづき ▶' : '▼ まだ つづくよ';
       el.classList.toggle('hasMore', rest > 6 && el.offsetParent !== null);
     };
     el.addEventListener('scroll', upd, { passive: true });
     if (window.ResizeObserver) new ResizeObserver(upd).observe(el);
-    new MutationObserver(upd).observe(el, { attributes: true, attributeFilter: ['hidden', 'class'] });
+    new MutationObserver(upd).observe(el, { attributes: true, attributeFilter: ['hidden'] });
+    new MutationObserver(upd).observe(app, { attributes: true, attributeFilter: ['class'] });
     window.addEventListener('resize', upd); g['cue_' + id] = upd; setTimeout(upd, 300);
   }
   const TARGETS = [10, 15, 30, 45, 60, 90];
