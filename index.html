@@ -592,7 +592,7 @@ body.proj{background:#000}
       <svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="19" rx="11" ry="10" fill="#ffd23f"/><circle cx="13" cy="10.5" r="7" fill="#ffd23f"/><circle cx="11.2" cy="9.6" r="1.3" fill="#2b2b2b"/><path d="M5.2 11.4 1.6 12.6 5.4 13.6Z" fill="#ff8a2a"/><path d="M19 18c4 0 7 2 9-1-1 4-5 6-9 5z" fill="#f2b705"/></svg>
       ゆびさしスライド
     </div>
-    <button class="btn" id="projBtn" hidden title="スクリーンに映すウィンドウを開く"><span class="em">🎬</span><span class="lbl" id="projLbl">映す</span></button>
+    <button class="btn" id="projBtn" hidden title="スクリーン用の窓を開く（外部ディスプレイに移して全画面にする）"><span class="em">🎬</span><span class="lbl" id="projLbl">投影用の窓</span></button>
     <button class="btn" id="topBtn" title="モード選択にもどる"><span class="em">🐤</span><span class="lbl">TOPへ</span></button>
     <label class="btn primary" for="file" title="PDFを開く（O）">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/></svg>
@@ -5032,7 +5032,7 @@ function stgSendAllInk(){
 function stgUI(){
   const live = stgOpen();
   $('#projBtn').hidden = !stg.on; $('#projBtn').classList.toggle('live', live);
-  $('#projLbl').textContent = live ? '投影中' : '映す';
+  $('#projLbl').textContent = live ? '投影中' : '投影用の窓';
   $('#stageEmpty').hidden = !(stg.on && !(S.src && S.src.kind === 'pdf'));
 }
 stg.start = () => {
