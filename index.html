@@ -3345,7 +3345,8 @@ function drawFx(now){
     const w = Math.abs(z.x1 - z.x0) * W, h = Math.abs(z.y1 - z.y0) * H;
     const fixing = S.tool === 'fix';
     x.fillStyle = fixing ? 'rgba(80,140,255,.16)' : 'rgba(255,201,60,.16)'; x.fillRect(a, b, w, h);
-    x.setLineDash([9 * d, 6 * d]); x.lineWidth = 2.5 * d; x.strokeStyle = fixing ? '#3b82f6' : '#f5b800'; x.strokeRect(a, b, w, h); x.setLineDash([]);
+    if (fixing){ x.lineWidth = 5 * d; x.strokeStyle = 'rgba(255,255,255,.95)'; x.strokeRect(a, b, w, h); }
+    x.setLineDash([9 * d, 6 * d]); x.lineWidth = 2.5 * d; x.strokeStyle = fixing ? '#2563eb' : '#f5b800'; x.strokeRect(a, b, w, h); x.setLineDash([]);
   }
   if (S.tool === 'arrow' && ptr.in){
     const k = 1.9 * d;
@@ -3358,7 +3359,7 @@ function drawFx(now){
     x.restore();
   }
 }
-function fxActive(){ return (S.tool === 'marker' && ptr.mr) || (S.tool === 'zoom' && ptr.zr) || (S.tool === 'laser' && (ptr.in || ptr.trail.length)) || ((S.tool === 'spot' || S.tool === 'arrow') && ptr.in); }
+function fxActive(){ return (S.tool === 'marker' && ptr.mr) || ((S.tool === 'zoom' || S.tool === 'fix') && ptr.zr) || (S.tool === 'laser' && (ptr.in || ptr.trail.length)) || ((S.tool === 'spot' || S.tool === 'arrow') && ptr.in); }
 function loop(now){
   const list = S.ink.get(S.page);
   if (list && list.some(s => s.fade && s.t)){
