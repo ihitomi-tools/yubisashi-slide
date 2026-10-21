@@ -453,6 +453,8 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 #app.mland:not(.bagDock) .gicons.hzI > .moreHint span{left:auto;right:0;top:0;bottom:0;width:78px;height:auto;align-items:center;justify-content:flex-end;padding:0 2px 0 0;background:linear-gradient(to right,rgba(20,26,51,0),rgba(20,26,51,.95) 55%)}
 @media (max-height:300px){#app.mland:not(.remotePad) #stage{visibility:hidden}}
 #gtlGrid button[data-t="zoom"]{letter-spacing:-.05em;white-space:nowrap;padding-left:2px;padding-right:2px}
+#stage.zoomed #fx.c-nav{cursor:grab}
+#stage.zoomed.panning #fx.c-nav{cursor:grabbing}
 </style>
 
 <div id="app">
@@ -592,6 +594,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
       <div><span>スポットライト（ホイールで大きさ）</span><span><kbd>S</kbd></span></div>
       <div><span>範囲拡大（囲んだ所を拡大。Esc で戻る）</span><span><kbd>Z</kbd></span></div>
       <div><span>拡大・縮小（ポインターの位置を中心に。Esc で戻る）</span><span><kbd>Ctrl</kbd> + ホイール</span></div>
+      <div><span>拡大したあとの移動（「送る」のとき、つかんでぐいっと動かす）</span><span>ドラッグ</span></div>
       <div><span>黒画面／白画面</span><span><kbd>B</kbd> <kbd>W</kbd></span></div>
       <div><span>縦長ページのスクロール（幅表示のとき）</span><span><kbd>↓</kbd> <kbd>↑</kbd> ホイール</span></div>
       <div><span>全画面／ページ一覧</span><span><kbd>F</kbd> <kbd>G</kbd></span></div>
@@ -3476,7 +3479,7 @@ function onDown(e){
     ptr.cur = { type: 'pen', color: S.color.pen, pts: [[nx, ny]], w: 0.0065 / zf(), fade: S.fade, t: 0 };
     strokes().push(ptr.cur); dirtyInk = true;
   } else if (S.tool === 'nav'){
-    ptr.start = { x: e.clientX, y: e.clientY, nx };
+    ptr.start = { x: e.clientX, y: e.clientY, nx, px: e.clientX, py: e.clientY, pan: false };
   } else if (S.tool === 'eraser'){
     eraseAt(nx, ny);
   } else if (S.tool === 'zoom'){
@@ -3488,6 +3491,15 @@ function onMove(e){
   ptr.x = nx; ptr.y = ny; ptr.in = true; ptr.type = e.pointerType;
   if (S.tool === 'laser' && (e.pointerType === 'mouse' || ptr.down)) ptr.trail.push({ x: nx, y: ny, t: performance.now() });
   if (ptr.zr && ptr.down){ ptr.zr.x1 = nx; ptr.zr.y1 = ny; }
+  if (S.tool === 'nav' && ptr.down && ptr.start && S.zoom && e.currentTarget === fx && S.css){
+    const st = ptr.start;
+    if (!st.pan && Math.hypot(e.clientX - st.x, e.clientY - st.y) > 6){ st.pan = true; stage.classList.add('panning'); }
+    if (st.pan){
+      const z = S.zoom, cl = v => Math.max(0, Math.min(1, v));
+      setZoom({ z: z.z, cx: cl(z.cx - (e.clientX - st.px) / (z.z * S.css.w)), cy: cl(z.cy - (e.clientY - st.py) / (z.z * S.css.h)) });
+      st.px = e.clientX; st.py = e.clientY;
+    }
+  }
   if (S.tool === 'eraser' && ptr.down) eraseAt(nx, ny);
   if (ptr.cur && ptr.cur.straight){
     const c = ptr.cur, [sx, sy] = c.s0;
@@ -3529,6 +3541,8 @@ function endPointer(e){
       }
     }
   }
+  stage.classList.remove('panning');
+  if (S.tool === 'nav' && ptr.start && ptr.start.pan){ ptr.start = null; return; }
   if (S.tool === 'nav' && ptr.start && e.type === 'pointerup'){
     const dx = e.clientX - ptr.start.x, dy = e.clientY - ptr.start.y;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) go(S.page + (dx < 0 ? 1 : -1));
