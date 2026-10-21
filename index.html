@@ -455,6 +455,10 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 #gtlGrid button[data-t="zoom"]{letter-spacing:-.05em;white-space:nowrap;padding-left:2px;padding-right:2px}
 #stage.zoomed #fx.c-nav{cursor:grab}
 #stage.zoomed.panning #fx.c-nav{cursor:grabbing}
+.fixOpt{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);white-space:nowrap}
+.fixSw{width:18px;height:18px;border-radius:5px;border:1px solid var(--line,#c9ccd6);}
+.fixSw{background:linear-gradient(135deg,#fff 45%,#d9dce6 45% 55%,#fff 55%)}
+#stage.fixPicking #fx{cursor:crosshair}
 </style>
 
 <div id="app">
@@ -480,8 +484,10 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
       <button class="tool" data-tool="eraser" aria-pressed="false" title="消しゴム（X / Ctrl+E）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M8.5 20l-5-5L14 4.5l6.5 6.5L11 20z"/><path d="M8 11l6.5 6.5M8.5 20H20" stroke-linecap="round"/></svg><span class="lbl">消しゴム</span><span class="k">X</span></button>
       <button class="tool" data-tool="spot" aria-pressed="false" title="スポットライト（S）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="4" width="19" height="16" rx="2" fill="currentColor" opacity=".25" stroke="none"/><circle cx="12" cy="12" r="5"/></svg><span class="lbl">スポット</span><span class="k">S</span></button>
       <button class="tool" data-tool="zoom" aria-pressed="false" title="範囲を選んで拡大（Z）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M10.5 7.5v6M7.5 10.5h6"/></svg><span class="lbl">範囲拡大</span><span class="k">Z</span></button>
+      <button class="tool" data-tool="fix" aria-pressed="false" title="範囲を背景色で塗って隠す（C）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M10.5 7.5v6M7.5 10.5h6"/></svg><span class="lbl">修正</span><span class="k">C</span></button>
     </div>
     <div class="swatches" id="swatches" hidden></div>
+    <span class="fixOpt" id="fixOpt" hidden><span class="fixSw" id="fixSw"></span><span id="fixTxt">色：自動（まわりの色）</span><button class="btn" id="fixPick" title="スライドの上の色をクリックして指定（Alt+クリックでも可）"><span class="lbl">色をえらぶ</span></button><button class="btn" id="fixAuto" hidden><span class="lbl">自動にもどす</span></button></span>
     <label class="chk" id="fadeWrap" hidden><input type="checkbox" id="fade">数秒で消える</label>
     <button class="btn" id="undo" hidden title="1つ戻す（Ctrl+Z）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span class="lbl">戻す</span></button>
     <button class="btn" id="clear" hidden title="このページの書き込みを全部消す（E）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H9L4 15l9-10 7 7-8 8"/></svg><span class="lbl">全部消す</span></button>
@@ -593,6 +599,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
       <div><span>書き込みを全部消す／1つ戻す</span><span><kbd>E</kbd> <kbd>Ctrl+Z</kbd></span></div>
       <div><span>スポットライト（ホイールで大きさ）</span><span><kbd>S</kbd></span></div>
       <div><span>範囲拡大（囲んだ所を拡大。Esc で戻る）</span><span><kbd>Z</kbd></span></div>
+      <div><span>修正（囲んだ所を背景色で塗って隠す。元のPDFは変わらない。Alt+クリックで色を指定）</span><span><kbd>C</kbd></span></div>
       <div><span>拡大・縮小（ポインターの位置を中心に。Esc で戻る）</span><span><kbd>Ctrl</kbd> + ホイール</span></div>
       <div><span>拡大したあとの移動（「送る」のとき、つかんでぐいっと動かす）</span><span>ドラッグ</span></div>
       <div><span>黒画面／白画面</span><span><kbd>B</kbd> <kbd>W</kbd></span></div>
@@ -3333,11 +3340,12 @@ function drawFx(now){
     const z = ptr.mr, a = z.x0 * W, b = z.y0 * H, w = (z.x1 - z.x0) * W, h = (z.y1 - z.y0) * H;
     x.setLineDash([9 * d, 6 * d]); x.lineWidth = 2 * d; x.strokeStyle = 'rgba(200,150,0,.9)'; x.strokeRect(a, b, w, h); x.setLineDash([]);
   }
-  if (S.tool === 'zoom' && ptr.zr){
+  if ((S.tool === 'zoom' || S.tool === 'fix') && ptr.zr){
     const z = ptr.zr, a = Math.min(z.x0, z.x1) * W, b = Math.min(z.y0, z.y1) * H;
     const w = Math.abs(z.x1 - z.x0) * W, h = Math.abs(z.y1 - z.y0) * H;
-    x.fillStyle = 'rgba(255,201,60,.16)'; x.fillRect(a, b, w, h);
-    x.setLineDash([9 * d, 6 * d]); x.lineWidth = 2.5 * d; x.strokeStyle = '#f5b800'; x.strokeRect(a, b, w, h); x.setLineDash([]);
+    const fixing = S.tool === 'fix';
+    x.fillStyle = fixing ? 'rgba(80,140,255,.16)' : 'rgba(255,201,60,.16)'; x.fillRect(a, b, w, h);
+    x.setLineDash([9 * d, 6 * d]); x.lineWidth = 2.5 * d; x.strokeStyle = fixing ? '#3b82f6' : '#f5b800'; x.strokeRect(a, b, w, h); x.setLineDash([]);
   }
   if (S.tool === 'arrow' && ptr.in){
     const k = 1.9 * d;
@@ -3462,6 +3470,46 @@ function norm(e){
   if (el.id === 'padC'){ const v = padViewNow(); return [v.u0 + px * (v.u1 - v.u0), v.v0 + py * (v.v1 - v.v0)]; }
   return [px, py];
 }
+/* ---------- 修正: paint a rectangle with the background colour (the PDF itself is never touched) ---------- */
+const hex2 = v => v.toString(16).padStart(2, '0');
+function pixelAt(ctx, x, y){ const d = ctx.getImageData(Math.max(0, Math.min(ctx.canvas.width - 1, Math.round(x))), Math.max(0, Math.min(ctx.canvas.height - 1, Math.round(y))), 1, 1).data; return [d[0], d[1], d[2]]; }
+function fixBg(r){
+  const ctx = pdfC.getContext('2d', { willReadFrequently: true }), cw = pdfC.width, ch = pdfC.height, d = Math.max(3, Math.round(3 * (S.css.dpr || 1)));
+  const X0 = r.x0 * cw, X1 = r.x1 * cw, Y0 = r.y0 * ch, Y1 = r.y1 * ch, pts = [];
+  const nx = Math.max(2, Math.min(60, Math.round((X1 - X0) / 8))), ny = Math.max(2, Math.min(60, Math.round((Y1 - Y0) / 8)));
+  for (let i = 0; i <= nx; i++){ const x = X0 + (X1 - X0) * i / nx; pts.push([x, Y0 - d], [x, Y1 + d]); }
+  for (let i = 0; i <= ny; i++){ const y = Y0 + (Y1 - Y0) * i / ny; pts.push([X0 - d, y], [X1 + d, y]); }
+  const bucket = new Map();
+  for (const [x, y] of pts){
+    if (x < 0 || y < 0 || x >= cw || y >= ch) continue;
+    const [R, G, B] = pixelAt(ctx, x, y), k = (R >> 3) << 10 | (G >> 3) << 5 | (B >> 3), b = bucket.get(k) || { n: 0, R: 0, G: 0, B: 0 };
+    b.n++; b.R += R; b.G += G; b.B += B; bucket.set(k, b);
+  }
+  let best = null; for (const b of bucket.values()) if (!best || b.n > best.n) best = b;
+  if (!best) return '#ffffff';
+  return '#' + hex2(Math.round(best.R / best.n)) + hex2(Math.round(best.G / best.n)) + hex2(Math.round(best.B / best.n));
+}
+function addFixPatch(z){
+  const r = { x0: Math.max(0, Math.min(z.x0, z.x1)), y0: Math.max(0, Math.min(z.y0, z.y1)), x1: Math.min(1, Math.max(z.x0, z.x1)), y1: Math.min(1, Math.max(z.y0, z.y1)) };
+  if ((r.x1 - r.x0) * S.css.w < 3 || (r.y1 - r.y0) * S.css.h < 3) return;
+  const color = S.fixColor || fixBg(r);
+  strokes().push({ type: 'pen', color, w: 0, fade: false, t: 0, area: r, fill: true, pts: [[r.x0, r.y0], [r.x1, r.y1]] });
+  dirtyInk = true; inkChanged();
+}
+function pickFixColor(nx, ny){
+  const ctx = pdfC.getContext('2d', { willReadFrequently: true });
+  const [R, G, B] = pixelAt(ctx, nx * pdfC.width, ny * pdfC.height);
+  S.fixColor = '#' + hex2(R) + hex2(G) + hex2(B); S.fixPicking = false; stage.classList.remove('fixPicking'); fixUI();
+}
+function fixUI(){
+  const sw = $('#fixSw'), tx = $('#fixTxt');
+  if (S.fixColor){ sw.style.background = S.fixColor; tx.textContent = '色：' + S.fixColor; }
+  else { sw.style.background = ''; tx.textContent = S.fixPicking ? '色：スライドをクリック' : '色：自動（まわりの色）'; }
+  if (S.fixPicking) tx.textContent = '色：スライドをクリック';
+  $('#fixAuto').hidden = !S.fixColor;
+}
+$('#fixPick').onclick = () => { S.fixPicking = !S.fixPicking; stage.classList.toggle('fixPicking', S.fixPicking); fixUI(); };
+$('#fixAuto').onclick = () => { S.fixColor = null; S.fixPicking = false; stage.classList.remove('fixPicking'); fixUI(); };
 function onDown(e){
   if (e.button > 0) return;
   if (e.currentTarget === fx && !(game && game.on) && e.pointerType !== 'mouse' && app.classList.contains('immersive') && S.tool === 'nav'){
@@ -3484,6 +3532,9 @@ function onDown(e){
     eraseAt(nx, ny);
   } else if (S.tool === 'zoom'){
     ptr.zr = { x0: nx, y0: ny, x1: nx, y1: ny, sx: e.clientX, sy: e.clientY };
+  } else if (S.tool === 'fix'){
+    if (S.fixPicking || e.altKey){ pickFixColor(nx, ny); }
+    else ptr.zr = { x0: nx, y0: ny, x1: nx, y1: ny, sx: e.clientX, sy: e.clientY };
   } else if (S.tool === 'laser'){ ptr.trail.push({ x: nx, y: ny, t: performance.now() }); }
 }
 function onMove(e){
@@ -3531,7 +3582,9 @@ function endPointer(e){
   }
   if (ptr.zr){
     const z = ptr.zr; ptr.zr = null;
-    if (e.type === 'pointerup'){
+    if (e.type === 'pointerup' && S.tool === 'fix'){
+      if (Math.hypot(e.clientX - z.sx, e.clientY - z.sy) >= 8) addFixPatch(z);
+    } else if (e.type === 'pointerup'){
       const moved = Math.hypot(e.clientX - z.sx, e.clientY - z.sy);
       const r = stage.getBoundingClientRect();
       if (moved < 10) setZoom({ z: zf() * 2, cx: z.x0, cy: z.y0 });
@@ -3595,9 +3648,10 @@ fx.addEventListener('wheel', e => {
 function setTool(t){
   S.tool = t; ptr.trail = [];
   document.querySelectorAll('.tool').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
-  fx.className = t === 'nav' ? 'c-nav' : (t === 'marker' || t === 'pen' || t === 'zoom' || t === 'eraser') ? 'c-draw' : 'c-none';
+  fx.className = t === 'nav' ? 'c-nav' : (t === 'marker' || t === 'pen' || t === 'zoom' || t === 'eraser' || t === 'fix') ? 'c-draw' : 'c-none';
+  S.fixPicking = false; stage.classList.remove('fixPicking'); $('#fixOpt').hidden = t !== 'fix'; fixUI();
   const draws = t === 'marker' || t === 'pen';
-  const inky = draws || t === 'eraser';
+  const inky = draws || t === 'eraser' || t === 'fix';
   $('#swatches').hidden = !draws; $('#fadeWrap').hidden = !draws; $('#undo').hidden = !inky; $('#clear').hidden = !inky;
   if (draws) buildSwatches();
   if (game) game.tool(t);
@@ -3606,7 +3660,8 @@ function setTool(t){
     arrow: '大きい矢印で場所を指します', marker: '横になぞる＝1行／斜めに囲む＝範囲の文字すべて',
     eraser: 'なぞった線を消します。E でこのページを全部消す', pen: 'ドラッグで書き込み',
     spot: 'マウスの周りだけ明るく。ホイールで大きさを変えられます',
-    zoom: '範囲拡大：ドラッグで囲んだ所を拡大。クリックで2倍。Esc で戻ります'
+    zoom: '範囲拡大：ドラッグで囲んだ所を拡大。クリックで2倍。Esc で戻ります',
+    fix: '修正：ドラッグで囲んだ所を背景色で塗ります（元の文字は残ります）。Alt+クリックで色を指定'
   }[t];
 }
 function buildSwatches(){
@@ -3746,7 +3801,7 @@ document.addEventListener('keydown', e => {
     ArrowDown: () => scrollOrGo(1), ArrowUp: () => scrollOrGo(-1),
     Home: () => go(0), End: () => go(S.src.count - 1),
     l: () => toggleTool('laser'), a: () => toggleTool('arrow'), h: () => toggleTool('marker'), p: () => toggleTool('pen'),
-    x: () => toggleTool('eraser'), s: () => toggleTool('spot'), z: () => toggleTool('zoom'),
+    x: () => toggleTool('eraser'), s: () => toggleTool('spot'), z: () => toggleTool('zoom'), c: () => toggleTool('fix'),
     e: clearPage, b: () => toggleBlack('black'), '.': () => toggleBlack('black'), w: () => toggleBlack('white'), ',': () => toggleBlack('white'),
     f: toggleFull, g: () => openPanel('grid'), '?': () => openPanel('help'), o: () => $('#file').click(), t: () => setPres(!S.pres)
   };
