@@ -517,7 +517,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
     <div class="big" id="bootRemoteBig">スクリーンに出ている<br>QRコードを、カメラで読んでね</div>
     <div id="bootCam"><video id="bootVideo" playsinline muted></video><div class="frm"></div></div>
     <div id="bootCamMsg"></div>
-    <div class="how">① スクリーンにする方（PC・iPad）で「リモコン」ボタンを おす<br>② 「この画面を スクリーンにする」を おすと QRコードが出る<br>③ この端末の カメラで読むと、すぐ リモコンになるよ</div>
+    <div class="how">① スクリーンにする方（PC・iPad）で「リモコン」ボタンを おす<br>② 「この画面を スクリーンにする」を おす（QRコードが出る）<br>③ この端末の カメラで読むと、すぐ リモコンになるよ</div>
     <div class="btns"><button class="btn" id="bootRemoteBack">← TOPに もどる</button><button class="btn" id="bootRemoteCode">あいことばで つなぐ（QRが使えないとき）</button><button class="btn" id="bootAsScreen">この端末を スクリーン側にする（QRを出す）</button></div>
   </div>
   <label class="chk"><input type="checkbox" id="bootSkip"> つぎから この画面を ださない</label>
@@ -4978,7 +4978,7 @@ const boot = (() => {
   $('#bootBack').onclick = b.hide;
   $('#bootRemoteBack').onclick = () => b.guide(false);
   $('#bootRemoteCode').onclick = () => { b.hide(); b.pendingRemote = true; openPanel('link'); };
-  $('#bootAsScreen').onclick = () => { store.set('mode', 'normal'); b.hide(); openPanel('link'); toast('「この画面を スクリーンにする」を おすと QRコードが出るよ', 5200); };
+  $('#bootAsScreen').onclick = () => { store.set('mode', 'normal'); b.hide(); openPanel('link'); $('#roleScreen').click(); };
   $('#topBtn').onclick = () => b.show(true);
   window.addEventListener('keydown', e => {
     if (!b.open) return;
