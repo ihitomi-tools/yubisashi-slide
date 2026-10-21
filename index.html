@@ -452,6 +452,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 #app.mland:not(.bagDock) .gicons.hzI > .moreHint span b{white-space:nowrap;font-size:11px;padding:3px 8px}
 #app.mland:not(.bagDock) .gicons.hzI > .moreHint span{left:auto;right:0;top:0;bottom:0;width:78px;height:auto;align-items:center;justify-content:flex-end;padding:0 2px 0 0;background:linear-gradient(to right,rgba(20,26,51,0),rgba(20,26,51,.95) 55%)}
 @media (max-height:300px){#app.mland:not(.remotePad) #stage{visibility:hidden}}
+#gtlGrid button[data-t="zoom"]{letter-spacing:-.05em;white-space:nowrap;padding-left:2px;padding-right:2px}
 </style>
 
 <div id="app">
@@ -476,7 +477,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
       <button class="tool" data-tool="pen" aria-pressed="false" title="ペン（P / Ctrl+P）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5l4 4L8 20l-5 1 1-5z"/></svg><span class="lbl">ペン</span><span class="k">P</span></button>
       <button class="tool" data-tool="eraser" aria-pressed="false" title="消しゴム（X / Ctrl+E）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M8.5 20l-5-5L14 4.5l6.5 6.5L11 20z"/><path d="M8 11l6.5 6.5M8.5 20H20" stroke-linecap="round"/></svg><span class="lbl">消しゴム</span><span class="k">X</span></button>
       <button class="tool" data-tool="spot" aria-pressed="false" title="スポットライト（S）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="4" width="19" height="16" rx="2" fill="currentColor" opacity=".25" stroke="none"/><circle cx="12" cy="12" r="5"/></svg><span class="lbl">スポット</span><span class="k">S</span></button>
-      <button class="tool" data-tool="zoom" aria-pressed="false" title="一部を拡大（Z）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M10.5 7.5v6M7.5 10.5h6"/></svg><span class="lbl">拡大</span><span class="k">Z</span></button>
+      <button class="tool" data-tool="zoom" aria-pressed="false" title="範囲を選んで拡大（Z）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M10.5 7.5v6M7.5 10.5h6"/></svg><span class="lbl">範囲拡大</span><span class="k">Z</span></button>
     </div>
     <div class="swatches" id="swatches" hidden></div>
     <label class="chk" id="fadeWrap" hidden><input type="checkbox" id="fade">数秒で消える</label>
@@ -589,7 +590,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
       <div><span>消しゴム（なぞった線を消す）</span><span><kbd>X</kbd> <kbd>Ctrl+E</kbd></span></div>
       <div><span>書き込みを全部消す／1つ戻す</span><span><kbd>E</kbd> <kbd>Ctrl+Z</kbd></span></div>
       <div><span>スポットライト（ホイールで大きさ）</span><span><kbd>S</kbd></span></div>
-      <div><span>一部を拡大（Esc で戻る）</span><span><kbd>Z</kbd></span></div>
+      <div><span>範囲拡大（囲んだ所を拡大。Esc で戻る）</span><span><kbd>Z</kbd></span></div>
       <div><span>拡大・縮小（ポインターの位置を中心に。Esc で戻る）</span><span><kbd>Ctrl</kbd> + ホイール</span></div>
       <div><span>黒画面／白画面</span><span><kbd>B</kbd> <kbd>W</kbd></span></div>
       <div><span>縦長ページのスクロール（幅表示のとき）</span><span><kbd>↓</kbd> <kbd>↑</kbd> ホイール</span></div>
@@ -3091,7 +3092,7 @@ function slideSample(x, W, H){
 function slideKeys(x, W, H){
   base(x, W, H, 'サンプル 3 / 3');
   x.fillStyle = '#1b2130'; x.font = `800 60px ${DISP}`; x.fillText('よく使うキー', 100, 150);
-  const items = [['→ / Space', '次へ'], ['←', '前へ'], ['L', 'レーザー'], ['A', '大きい矢印'], ['H', '蛍光マーカー'], ['P', 'ペン'], ['S', 'スポットライト'], ['Z', '一部を拡大'], ['B / W', '黒画面・白画面'], ['数字 + Enter', 'そのページへ']];
+  const items = [['→ / Space', '次へ'], ['←', '前へ'], ['L', 'レーザー'], ['A', '大きい矢印'], ['H', '蛍光マーカー'], ['P', 'ペン'], ['S', 'スポットライト'], ['Z', '範囲拡大'], ['B / W', '黒画面・白画面'], ['数字 + Enter', 'そのページへ']];
   items.forEach((it, i) => {
     const col = i < 5 ? 0 : 1, row = i % 5, X = 100 + col * 720, Y = 250 + row * 105;
     x.font = `700 32px ${BODY}`; const tw = x.measureText(it[0]).width + 40;
@@ -3591,7 +3592,7 @@ function setTool(t){
     arrow: '大きい矢印で場所を指します', marker: '横になぞる＝1行／斜めに囲む＝範囲の文字すべて',
     eraser: 'なぞった線を消します。E でこのページを全部消す', pen: 'ドラッグで書き込み',
     spot: 'マウスの周りだけ明るく。ホイールで大きさを変えられます',
-    zoom: 'ドラッグで囲んだ所を拡大。クリックで2倍。Esc で戻ります'
+    zoom: '範囲拡大：ドラッグで囲んだ所を拡大。クリックで2倍。Esc で戻ります'
   }[t];
 }
 function buildSwatches(){
@@ -3831,7 +3832,7 @@ game = (() => {
     pen: 'ペンを そうびした！ すきなだけ かきこめるぞ！',
     eraser: 'けしゴムを そうびした！ 線を なぞれば きえるぞ！',
     spot: 'スポットを そうびした！ まわりが やみに つつまれる…！',
-    zoom: 'かくだいを そうびした！ かこんだ所が ぐぐっと 大きくなるぞ！'
+    zoom: 'はんいかくだいを そうびした！ かこんだ所が ぐぐっと 大きくなるぞ！'
   };
   let typeT;
   g.say = text => {
@@ -4110,7 +4111,7 @@ game = (() => {
     else if (g.combo === 6){ g.say('マーカーの たつじん だ…！'); g.hop(); }
   };
   const WHEEL = ['nav', 'laser', 'arrow', 'marker', 'pen', 'eraser', 'spot', 'zoom'];
-  const WNAME = { nav: 'てぶら', laser: 'レーザー', arrow: 'やじるし', marker: 'マーカー', pen: 'ペン', eraser: 'けしゴム', spot: 'スポット', zoom: 'かくだい' };
+  const WNAME = { nav: 'てぶら', laser: 'レーザー', arrow: 'やじるし', marker: 'マーカー', pen: 'ペン', eraser: 'けしゴム', spot: 'スポット', zoom: 'はんいかくだい' };
   const drum = $('#gDrum'), bagCur = $('#bagCur');
   function renderWheel(t){
     if (!WNAME[t]) return;
