@@ -516,6 +516,10 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 #app.stageMode:not(.mobile):not(.immersive){grid-template-rows:auto 1fr auto auto}
 #app.stageMode:not(.mobile):not(.immersive) .bottom{grid-row:4}
 #stageStrip{grid-row:3;display:flex;gap:8px;align-items:stretch;padding:8px 12px;background:var(--panel);border-top:1px solid var(--line);overflow-x:auto;overflow-y:hidden;height:124px;scrollbar-width:thin;z-index:5}
+#stageBig{display:none;position:absolute;top:10px;right:14px;z-index:6;width:38px;height:34px;align-items:center;justify-content:center;padding:0;border-radius:10px;border:2px solid var(--neon);background:color-mix(in srgb,var(--neon) 20%,#0b1020);color:#fff;cursor:pointer;box-shadow:0 0 0 2px #fff}
+#stageBig svg{width:20px;height:20px}
+#app.stageMode #stageBig{display:flex}
+#app.stageBig #stageStrip,#app.stageBig #stagePrev{display:none!important}
 #stageStrip[hidden],#app.immersive #stageStrip,#app.mobile #stageStrip{display:none}
 @media (max-height:560px){#stageStrip{display:none}}
 .sThumb{position:relative;flex:none;height:100%;aspect-ratio:16/9;border:2px solid var(--line);border-radius:10px;background:var(--bg);padding:0;cursor:pointer;overflow:hidden}
@@ -623,6 +627,7 @@ body.proj{background:#000}
       <canvas id="inkP"></canvas>
       <canvas id="fx" class="c-nav" aria-label="スライド"></canvas>
     </div>
+    <button id="stageBig" type="button" aria-pressed="false" title="映っているところを広げる（ツール以外いっぱいに）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     <div id="zoomChip" hidden><span id="zoomLbl">拡大中</span><button class="btn" id="zoomOut">元に戻す（Esc）</button></div>
     <div id="loading" hidden>読み込み中…</div>
     <div id="black" hidden><span>もう一度押すか Esc で戻ります</span></div>
@@ -4083,7 +4088,7 @@ game = (() => {
     const mode = store.get('layoutMode', 'auto');
     /* a touch device used as the remote (an iPad too) always gets the game panel */
     const touchRemote = sync.role === 'remote' && matchMedia('(pointer: coarse)').matches;
-    g.on = mode === 'phone' ? true : mode === 'normal' ? false : (mq.matches || mqL.matches || touchRemote);
+    g.on = app.classList.contains('stageMode') ? false : mode === 'phone' ? true : mode === 'normal' ? false : (mq.matches || mqL.matches || touchRemote);
     app.classList.toggle('mland', g.on && matchMedia('(orientation: landscape)').matches);
     app.classList.toggle('swapLR', !!store.get('swapLR', false));
     document.querySelectorAll('.gswap').forEach(b => b.setAttribute('aria-pressed', String(!!store.get('swapLR', false))));
@@ -4094,7 +4099,7 @@ game = (() => {
     if (g.drawNextThumb) g.drawNextThumb();
     requestAnimationFrame(() => { layout(); g.layout(); });
   }
-  g.apply = apply;
+  g.apply = apply; window.__gApply = apply;
   for (const m of [mq, mqL, matchMedia('(orientation: landscape)'), matchMedia('(min-width: 900px)')]) { if (m.addEventListener) m.addEventListener('change', apply); else m.addListener(apply); }
   addEventListener('orientationchange', () => setTimeout(apply, 200));
   g.layout = () => {
@@ -5031,13 +5036,13 @@ function stgUI(){
   $('#stageEmpty').hidden = !(stg.on && !(S.src && S.src.kind === 'pdf'));
 }
 stg.start = () => {
-  stg.on = true; stgChan(); app.classList.add('stageMode');
+  stg.on = true; stgChan(); app.classList.add('stageMode'); try { window.__gApply && window.__gApply(); } catch(_){}
   if (!S.pres){ setPres(true); stg.presAuto = true; }
   stgUI(); stgStripBuild(); requestAnimationFrame(layout);
 };
 stg.stop = () => {
   if (!stg.on) return;
-  stg.on = false; app.classList.remove('stageMode');
+  stg.on = false; app.classList.remove('stageMode', 'stageBig'); try { window.__gApply && window.__gApply(); } catch(_){}
   if (stgOpen()){ stg.ch.postMessage({ t: 'bye' }); try { stg.win.close(); } catch(e){} }
   stg.win = null; clearInterval(stg.timer);
   if (stg.presAuto){ setPres(false); stg.presAuto = false; }
@@ -5111,7 +5116,7 @@ function stgNeon(toggle){
 let prevSeq = 0;
 async function stgPreview(p){
   if (!S.src || p < 0 || p >= S.src.count) return;
-  prevP = p; app.classList.add('prevOpen'); prevEl.hidden = false; stgStripMark(false);
+  prevP = p; app.classList.remove('stageBig'); $('#stageBig').setAttribute('aria-pressed','false'); app.classList.add('prevOpen'); prevEl.hidden = false; stgStripMark(false);
   $('#prevNo').textContent = (p + 1) + ' / ' + S.src.count;
   const my = ++prevSeq;
   try {
@@ -5120,6 +5125,7 @@ async function stgPreview(p){
     const c = $('#prevC'); c.width = t.width; c.height = t.height; c.getContext('2d').drawImage(t, 0, 0);
   } catch(e){}
 }
+$('#stageBig').onclick = () => { const on = !app.classList.contains('stageBig'); if (on) stgPreviewClose(); app.classList.toggle('stageBig', on); $('#stageBig').setAttribute('aria-pressed', String(on)); $('#stageBig').title = on ? '元の大きさにもどす' : '映っているところを広げる（ツール以外いっぱいに）'; requestAnimationFrame(layout); };
 function stgPreviewClose(){ prevP = -1; prevSeq++; prevEl.hidden = true; app.classList.remove('prevOpen'); stgStripMark(false); }
 $('#pvClose').onclick = stgPreviewClose;
 $('#pvShow').onclick = () => { const p = prevP; stgPreviewClose(); if (p >= 0) go(p); };
