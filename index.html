@@ -590,6 +590,7 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
       <div><span>書き込みを全部消す／1つ戻す</span><span><kbd>E</kbd> <kbd>Ctrl+Z</kbd></span></div>
       <div><span>スポットライト（ホイールで大きさ）</span><span><kbd>S</kbd></span></div>
       <div><span>一部を拡大（Esc で戻る）</span><span><kbd>Z</kbd></span></div>
+      <div><span>拡大・縮小（ポインターの位置を中心に。Esc で戻る）</span><span><kbd>Ctrl</kbd> + ホイール</span></div>
       <div><span>黒画面／白画面</span><span><kbd>B</kbd> <kbd>W</kbd></span></div>
       <div><span>縦長ページのスクロール（幅表示のとき）</span><span><kbd>↓</kbd> <kbd>↑</kbd> ホイール</span></div>
       <div><span>全画面／ページ一覧</span><span><kbd>F</kbd> <kbd>G</kbd></span></div>
@@ -3548,6 +3549,23 @@ fx.addEventListener('pointerup', endPointer);
 fx.addEventListener('pointercancel', endPointer);
 fx.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !ptr.down) ptr.in = false; });
 fx.addEventListener('wheel', e => {
+  /* Ctrl + wheel (and trackpad pinch) = zoom in/out around the pointer */
+  if (e.ctrlKey){
+    e.preventDefault();
+    if (!S.src || !S.css) return;
+    const sr = stage.getBoundingClientRect(), { w, h } = S.css;
+    const px = e.clientX - sr.left, py = e.clientY - sr.top;
+    const left = sheet.offsetLeft - stage.scrollLeft, top = sheet.offsetTop - stage.scrollTop;
+    const z0 = zf(), cur = S.zoom;
+    const tx = cur ? stage.clientWidth / 2 - left - z0 * cur.cx * w : 0, ty = cur ? stage.clientHeight / 2 - top - z0 * cur.cy * h : 0;
+    const cl = v => Math.max(0, Math.min(1, v));
+    const u = cl((px - left - tx) / (z0 * w)), v = cl((py - top - ty) / (z0 * h));
+    const k = Math.exp(-Math.max(-120, Math.min(120, e.deltaY)) * (e.deltaMode === 0 ? .0018 : .05));
+    const z2 = Math.max(1, Math.min(6, z0 * k));
+    if (z2 <= 1.02){ if (cur) setZoom(null); return; }
+    setZoom({ z: z2, cx: cl(u + (stage.clientWidth / 2 - px) / (z2 * w)), cy: cl(v + (stage.clientHeight / 2 - py) / (z2 * h)) });
+    return;
+  }
   if (S.tool === 'marker'){
     e.preventDefault();
     S.mw = Math.max(.012, Math.min(.09, S.mw * (e.deltaY > 0 ? 0.9 : 1.1))); store.set('mw', S.mw);
