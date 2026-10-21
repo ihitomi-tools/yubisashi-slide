@@ -741,7 +741,7 @@ body.proj{background:#000}
       <div><span>はじめの画面：「通常」「舞台裏」「リモコン」から えらぶ。「TOPへ」で いつでも もどれる</span><span></span></div>
       <div><span>PDFを画面にドラッグ＆ドロップで開く。まとめて入れると、全部しりょうばこに入って最初の1つが開く</span><span></span></div>
       <div><span>舞台裏：「映す」で投影ウィンドウが開く（2画面なら外側の画面へ）。投影ウィンドウをクリックして F で全画面。手元の蛍光の枠の中が、そのまま映る。投影ウィンドウにPDFをドロップしても入る</span><span></span></div>
-      <div><span>舞台裏の下の一覧：「いま映してる」「次」「その次」と全ページ。クリックでそのページを映す。長押しすると、右に手元だけの拡大が出る（まだ映らない）。「これを映す」か Enter で投影に出る。映している枠は、そのまま動かず、マーカーなどもいつも使える。左端の丸で、光る枠の色（ミント／ピンク）をかえられる</span><span></span></div>
+      <div><span>舞台裏の下の一覧：「いま映してる」「次」「その次」と全ページ。クリック（長押し）すると、右に手元だけの拡大が出る（まだ映らない）。「これを映す」か Enter を押したときだけ投影に出る。映している枠は、そのまま動かず、マーカーなどもいつも使える。左端の丸で、光る枠の色（ミント／ピンク）をかえられる</span><span></span></div>
       <div><span>リモコン：パッドの余白に「次のスライド」が並ぶ（見るだけ）。横長は横一列で右から左へ払うと先が出る／縦長は縦に並ぶ。長押しで大きく見える</span><span></span></div>
       <div><span>リモコン（横持ち）：「いれかえ」でパッドと操作部を左右入れ替え</span><span></span></div>
       <div><span>「つづき ▶」「▼ まだ つづくよ」が見えているあいだは、まだ続きがあります（アイコン欄・メニュー・次のスライド）</span><span></span></div>
@@ -5080,7 +5080,7 @@ function stgStripBuild(){
   const sw = document.createElement('button'); sw.id = 'neonSw'; sw.title = '光る枠の色をかえる（ミント／ベビーピンク）'; sw.onclick = () => stgNeon(true); strip.appendChild(sw);
   const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting){ io.unobserve(en.target); stripQ.push([en.target.querySelector('canvas'), +en.target.dataset.p, tok]); stripPump(); } }), { root: strip, rootMargin: '0px 400px' });
   for (let i = 0; i < S.src.count; i++){
-    const b = document.createElement('button'); b.className = 'sThumb'; b.dataset.p = i; b.title = (i + 1) + 'ページ目：クリックで映す／長押しで 手元だけ拡大';
+    const b = document.createElement('button'); b.className = 'sThumb'; b.dataset.p = i; b.title = (i + 1) + 'ページ目：クリック（長押し）で 手元だけ拡大。映すのは「これを映す」を押したとき';
     const c = document.createElement('canvas'); c.width = 16; c.height = 9;
     const n = document.createElement('span'); n.className = 'n'; n.textContent = i + 1;
     const t = document.createElement('span'); t.className = 'tag';
@@ -5090,7 +5090,7 @@ function stgStripBuild(){
     const cancel = () => clearTimeout(lp);
     b.addEventListener('pointerup', cancel); b.addEventListener('pointerleave', cancel); b.addEventListener('pointercancel', cancel);
     b.addEventListener('contextmenu', e => e.preventDefault());
-    b.addEventListener('click', () => { if (longed){ longed = false; return; } stgPreviewClose(); go(i); });
+    b.addEventListener('click', () => { if (longed){ longed = false; return; } stgPreview(i); });
   }
   stgStripMark(true);
 }
