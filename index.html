@@ -101,6 +101,18 @@ button,input,label.btn{font:inherit;color:inherit}
 #timer{font-family:var(--f-body);font-variant-numeric:tabular-nums;min-width:5.2em;justify-content:center}
 #timer.paused{color:var(--muted)}
 
+/* simple look (normal mode, assumes the screen is mirrored): bars float, hidden until opened with the tab */
+#app:not(.stageMode):not(.mobile){grid-template-rows:0 1fr 0}
+#app:not(.stageMode):not(.mobile) .bar{position:absolute;left:0;right:0;z-index:20;transition:opacity .25s,transform .25s}
+#app:not(.stageMode):not(.mobile) .top{top:0}
+#app:not(.stageMode):not(.mobile) .bottom{bottom:0}
+#app:not(.stageMode):not(.mobile):not(.barsOpen) .top{opacity:0!important;transform:translateY(-100%)!important;pointer-events:none!important}
+#app:not(.stageMode):not(.mobile):not(.barsOpen) .bottom{opacity:0!important;transform:translateY(100%)!important;pointer-events:none!important}
+#app:not(.stageMode):not(.mobile) #sheet{box-shadow:none}
+#barTab{display:none;position:absolute;top:8px;right:10px;z-index:25;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:700 12px var(--f-disp);cursor:pointer;opacity:.3;transition:opacity .2s,top .25s}
+#barTab:hover,#barTab:focus-visible,#app.barsOpen #barTab{opacity:1}
+#app:not(.stageMode):not(.mobile) #barTab{display:inline-flex}
+#app.barsOpen:not(.stageMode):not(.mobile) #barTab{top:50%}
 /* full screen: bars float and hide while idle */
 #app.immersive{grid-template-rows:0 1fr 0}
 #app.immersive .bar{position:absolute;left:0;right:0;transition:opacity .3s,transform .3s}
@@ -642,6 +654,7 @@ body.proj{background:#000}
     </ol>
     <div class="pgNote">「複製」のままだと、手元の画面もそのままスクリーンに映ります。</div>
   </div>
+  <button id="barTab" type="button" aria-pressed="false" title="ツールを出す／しまう（M）"><span id="barTabLbl">▾ ツール</span></button>
   <main id="stage">
     <div id="sheet">
       <canvas id="pdf"></canvas>
@@ -3329,7 +3342,7 @@ async function pdfSource(file){
 let cache = new Map();
 function fit(i){
   const cw = stage.clientWidth, ch = stage.clientHeight;
-  const pad = app.classList.contains('immersive') ? 0 : 16;
+  const pad = (app.classList.contains('immersive') || simpleOn()) ? 0 : 16;
   const { w, h } = S.src.size(i);
   const s = Math.max(0.05, S.fitW ? (cw - pad * 2) / w : Math.min((cw - pad * 2) / w, (ch - pad * 2) / h));
   return { w: Math.floor(w * s), h: Math.floor(h * s) };
@@ -3346,7 +3359,7 @@ function layout(){
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
   sheet.style.width = w + 'px'; sheet.style.height = h + 'px';
   stage.classList.toggle('fitw', S.fitW);
-  if (S.fitW){ const pad = app.classList.contains('immersive') ? 0 : 16; sheet.style.margin = `${Math.max(pad, (stage.clientHeight - h) / 2)}px auto ${pad}px`; }
+  if (S.fitW){ const pad = (app.classList.contains('immersive') || simpleOn()) ? 0 : 16; sheet.style.margin = `${Math.max(pad, (stage.clientHeight - h) / 2)}px auto ${pad}px`; }
   else sheet.style.margin = '';
   const bw = Math.round(w * dpr), bh = Math.round(h * dpr);
   S.css = { w, h, dpr };
@@ -3864,6 +3877,9 @@ $('#black').onclick = () => toggleBlack(false);
 
 let wake = null;
 async function keepAwake(){ try { if ('wakeLock' in navigator && !wake) { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => wake = null); } } catch(e){} }
+function toggleBars(on){ const o = on === undefined ? !app.classList.contains('barsOpen') : on; app.classList.toggle('barsOpen', o); $('#barTab').setAttribute('aria-pressed', String(o)); $('#barTabLbl').textContent = o ? '▴ しまう' : '▾ ツール'; requestAnimationFrame(layout); }
+$('#barTab').onclick = () => toggleBars();
+function simpleOn(){ return !app.classList.contains('stageMode') && !app.classList.contains('mobile'); }
 function setImmersive(on){ app.classList.toggle('immersive', on); $('#full .lbl').textContent = on ? '全画面をやめる' : '全画面'; $('#full').title = on ? '全画面をやめる（F）' : '全画面（F）'; $('#full').setAttribute('aria-pressed', String(on)); if (on) { keepAwake(); poke(); } else app.classList.remove('idle'); requestAnimationFrame(layout); }
 async function toggleFull(){
   const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
@@ -3966,7 +3982,7 @@ document.addEventListener('keydown', e => {
     l: () => toggleTool('laser'), a: () => toggleTool('arrow'), h: () => toggleTool('marker'), p: () => toggleTool('pen'),
     x: () => toggleTool('eraser'), s: () => toggleTool('spot'), z: () => toggleTool('zoom'), c: () => toggleTool('fix'),
     e: clearPage, b: () => toggleBlack('black'), '.': () => toggleBlack('black'), w: () => toggleBlack('white'), ',': () => toggleBlack('white'),
-    f: toggleFull, g: () => openPanel('grid'), '?': () => openPanel('help'), o: () => $('#file').click(), t: () => setPres(!S.pres)
+    f: toggleFull, g: () => openPanel('grid'), '?': () => openPanel('help'), o: () => $('#file').click(), t: () => setPres(!S.pres), m: () => toggleBars()
   };
   const fn = map[lk];
   if (fn){
@@ -5085,7 +5101,7 @@ async function stgProject(){
   stg.win = window.open(location.pathname + '#proj', 'yubisashi-proj', 'popup=yes,width=1280,height=720');
   if (!stg.win){ toast('投影ウィンドウが ブロックされたよ。ポップアップを 許可してね', 5200); return; }
   clearInterval(stg.timer); stg.timer = setInterval(() => { if (!stgOpen()){ clearInterval(stg.timer); stgUI(); } }, 1000);
-  stgUI();
+  stgUI(); pgState(); $('#projGuide').hidden = false;
   /* Chrome/Edge: with a second display, move the window there (needs the user's OK; skipped quietly if not available) */
   try {
     if ('getScreenDetails' in window){
