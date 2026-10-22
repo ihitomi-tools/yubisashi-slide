@@ -516,6 +516,16 @@ kbd{font-family:var(--f-body);font-size:12px;border:1px solid var(--line);border
 #app.stageMode:not(.mobile):not(.immersive){grid-template-rows:auto 1fr auto auto}
 #app.stageMode:not(.mobile):not(.immersive) .bottom{grid-row:4}
 #stageStrip{grid-row:3;display:flex;gap:8px;align-items:stretch;padding:8px 12px;background:var(--panel);border-top:1px solid var(--line);overflow-x:auto;overflow-y:hidden;height:124px;scrollbar-width:thin;z-index:5}
+#projHelp{position:relative}
+#projHelp .pdot{position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 2px var(--panel)}
+#projHelp .pdot.ok{background:var(--neon)}#projHelp .pdot.ng{background:#ffb86b}
+#projGuide{position:absolute;top:56px;right:14px;z-index:30;width:min(360px,calc(100vw - 28px));background:var(--panel);color:var(--fg);border:2px solid var(--neon);border-radius:14px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.45);font-size:13.5px;line-height:1.6}
+#projGuide[hidden]{display:none}
+#projGuide .pgHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+#projGuide .pgSt{font-weight:700;margin:4px 0 6px}
+#projGuide ol{margin:0;padding-left:1.4em}#projGuide li{margin:3px 0}
+#projGuide .key{display:inline-block;min-width:1.6em;text-align:center;padding:0 6px;border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;background:var(--bg);font-weight:800;font-size:12px}
+#projGuide .pgNote{margin-top:6px;color:var(--muted);font-size:12px}
 #stageBig{display:none;position:absolute;top:10px;right:14px;z-index:6;width:38px;height:34px;align-items:center;justify-content:center;padding:0;border-radius:10px;border:2px solid var(--neon);background:color-mix(in srgb,var(--neon) 20%,#0b1020);color:#fff;cursor:pointer;box-shadow:0 0 0 2px #fff}
 #stageBig svg{width:20px;height:20px}
 #app.stageMode #stageBig{display:flex}
@@ -593,6 +603,7 @@ body.proj{background:#000}
       ゆびさしスライド
     </div>
     <button class="btn" id="projBtn" hidden title="スクリーン用の窓を開く（外部ディスプレイに移して全画面にする）"><span class="em">🎬</span><span class="lbl" id="projLbl">投影用の窓</span></button>
+    <button class="btn" id="projHelp" hidden title="スクリーンへのつなぎ方"><span class="em">🖥</span><span class="lbl">つなぎ方</span><i class="pdot" id="projDot"></i></button>
     <button class="btn" id="topBtn" title="モード選択にもどる"><span class="em">🐤</span><span class="lbl">TOPへ</span></button>
     <label class="btn primary" for="file" title="PDFを開く（O）">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/></svg>
@@ -620,6 +631,17 @@ body.proj{background:#000}
     <button class="btn" id="clear" hidden title="このページの書き込みを全部消す（E）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H9L4 15l9-10 7 7-8 8"/></svg><span class="lbl">全部消す</span></button>
   </header>
 
+  <div id="projGuide" hidden role="dialog" aria-label="スクリーンへのつなぎ方">
+    <div class="pgHead"><b>🖥 スクリーンへのつなぎ方</b><button class="btn" id="pgClose" type="button">とじる</button></div>
+    <div class="pgSt" id="pgSt"></div>
+    <ol>
+      <li><span class="key">Win</span>＋<span class="key">P</span> を押して、<b>「拡張」</b>を選ぶ</li>
+      <li>「投影用の窓」を押して、窓を開く</li>
+      <li>窓をスクリーン側へ動かす（<span class="key">Win</span>＋<span class="key">Shift</span>＋<span class="key">→</span> でも飛ばせる）</li>
+      <li>窓の中で <span class="key">F</span> を押して全画面にする</li>
+    </ol>
+    <div class="pgNote">「複製」のままだと、手元の画面もそのままスクリーンに映ります。</div>
+  </div>
   <main id="stage">
     <div id="sheet">
       <canvas id="pdf"></canvas>
@@ -5029,9 +5051,18 @@ function stgSendAllInk(){
   if (!stg.ch) return;
   for (const [p, list] of S.ink) if (list && list.length) stg.ch.postMessage({ t: 'ink', page: p, list: list.map(x => encStroke(x, 6000)) });
 }
+function pgState(){
+  const ext = (typeof screen !== 'undefined' && 'isExtended' in screen) ? screen.isExtended : null;
+  const dot = $('#projDot'), st = $('#pgSt');
+  dot.className = 'pdot' + (ext === true ? ' ok' : ext === false ? ' ng' : '');
+  st.textContent = ext === true ? '✅ 画面が2枚以上つながっています（拡張）' : ext === false ? '⚠️ いまは画面が1枚に見えます。未接続か「複製」かもしれません' : 'ℹ️ この環境では、つながっているか確認できません';
+}
+try { if (typeof screen !== 'undefined' && screen.addEventListener) screen.addEventListener('change', pgState); } catch(_){}
+$('#projHelp').onclick = () => { pgState(); const g = $('#projGuide'); g.hidden = !g.hidden; };
+$('#pgClose').onclick = () => { $('#projGuide').hidden = true; };
 function stgUI(){
   const live = stgOpen();
-  $('#projBtn').hidden = !stg.on; $('#projBtn').classList.toggle('live', live);
+  $('#projBtn').hidden = !stg.on; $('#projHelp').hidden = !stg.on; if (!stg.on) $('#projGuide').hidden = true; pgState(); $('#projBtn').classList.toggle('live', live);
   $('#projLbl').textContent = live ? '投影中' : '投影用の窓';
   $('#stageEmpty').hidden = !(stg.on && !(S.src && S.src.kind === 'pdf'));
 }
