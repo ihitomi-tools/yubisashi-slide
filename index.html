@@ -110,6 +110,15 @@ button,input,label.btn{font:inherit;color:inherit}
 #app:not(.stageMode):not(.mobile):not(.barsOpen) .top{opacity:0!important;transform:translateY(-100%)!important;pointer-events:none!important}
 #app:not(.stageMode):not(.mobile):not(.barsOpen) .bottom{opacity:0!important;transform:translateY(100%)!important;pointer-events:none!important}
 #app:not(.stageMode):not(.mobile) #sheet{box-shadow:none}
+#tip{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:40;width:min(440px,calc(100vw - 28px));background:var(--panel);color:var(--fg);border:2px solid var(--neon,#7de3c0);border-radius:14px;padding:12px 14px 14px;box-shadow:0 8px 28px rgba(0,0,0,.45);font-size:13.5px;line-height:1.7;overflow:hidden}
+#tip[hidden]{display:none}
+#tip .tipHead{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+#tip .tipSub{color:var(--muted);font-size:12px;flex:1}
+#tip ul{margin:0;padding-left:1.2em}
+#tip .tipHelp{margin-top:6px;font-weight:700}
+#tip .key{display:inline-block;padding:0 6px;border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;background:var(--bg);font-weight:800;font-size:12px}
+#tip .tipBar{position:absolute;left:0;bottom:0;height:4px;width:100%;background:var(--neon,#7de3c0);transform-origin:left;animation:tipBar 10s linear forwards}
+@keyframes tipBar{to{transform:scaleX(0)}}
 #barTab{display:none;position:absolute;top:8px;right:10px;z-index:25;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:700 12px var(--f-disp);cursor:pointer;opacity:.3;transition:opacity .2s,top .25s}
 #barTab:hover,#barTab:focus-visible,#app.barsOpen #barTab{opacity:1}
 #app:not(.stageMode):not(.mobile) #barTab{display:inline-flex}
@@ -656,6 +665,14 @@ body.proj{background:#000}
     <div class="pgNote">「複製」のままだと、手元の画面もそのままスクリーンに映ります。</div>
   </div>
   <button id="barTab" type="button" aria-pressed="false" title="メニュー（ツール）を出す／しまう（M ＝ Menu）"><span id="barTabLbl">▾ ツール</span></button>
+  <div id="tip" hidden role="status"><div class="tipHead"><b>🐤 はじめに</b><span class="tipSub">10秒ほどで消えます</span><button class="btn" id="tipX" type="button">とじる</button></div>
+    <ul>
+      <li>ページを進める：<span class="key">クリック</span> <span class="key">→</span> <span class="key">Space</span>　戻る：<span class="key">←</span></li>
+      <li>ツールを出す：右上の「▾ ツール」または <span class="key">M</span></li>
+      <li>全画面にする：<span class="key">F</span></li>
+    </ul>
+    <div class="tipHelp">困ったら → ツールの「使い方」（または <span class="key">?</span>）を見てね！</div>
+    <i class="tipBar"></i></div>
   <main id="stage">
     <div id="sheet">
       <canvas id="pdf"></canvas>
@@ -5254,7 +5271,10 @@ const boot = (() => {
   };
   b.guide = (on) => { el.classList.remove('scan'); b.camStop(); el.classList.toggle('guide', on); if (on) $('#bootBranchImg').src = el.querySelector('[data-mode=remote] img').src; };
   b.scan = (on) => { el.classList.toggle('scan', on); if (on) b.camStart(); else b.camStop(); };
-  b.apply = (mode) => { if (mode === 'remote'){ if (!b.open) b.show(false); b.guide(true); } else if (mode === 'stage') stg.start(); };
+  let tipT = 0;
+  b.tip = (on) => { const t = $('#tip'); clearTimeout(tipT); t.hidden = !on; if (on){ const bar = t.querySelector('.tipBar'); bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; tipT = setTimeout(() => { t.hidden = true; }, 10000); } };
+  $('#tipX').onclick = () => b.tip(false);
+  b.apply = (mode) => { if (mode === 'remote'){ if (!b.open) b.show(false); b.guide(true); } else if (mode === 'stage') stg.start(); if (mode === 'normal') b.tip(true); else b.tip(false); };
   el.querySelectorAll('.bcard').forEach(c => c.onclick = () => b.start(c.dataset.mode));
   $('#bootBack').onclick = b.hide;
   $('#bootRemoteBack').onclick = () => b.guide(false);
