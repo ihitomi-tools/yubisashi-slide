@@ -831,9 +831,9 @@ body.proj{background:#000}
       <div><span>消しゴム（なぞった線を消す）</span><span><kbd>X</kbd> <kbd>Ctrl+E</kbd></span></div>
       <div><span>書き込みを全部消す／1つ戻す</span><span><kbd>E</kbd> <kbd>Ctrl+Z</kbd></span></div>
       <div><span>スポットライト（ホイールで大きさ）</span><span><kbd>S</kbd></span></div>
-      <div><span>範囲拡大（囲んだ所を拡大。Esc で戻る）</span><span><kbd>Z</kbd></span></div>
+      <div><span>範囲拡大（囲んだ所を拡大。「送る」の状態で Esc を押すと戻る）</span><span><kbd>Z</kbd></span></div>
       <div><span>修正（囲んだ所を背景色で塗って隠す。元のPDFは変わらない。Alt+クリックで色を指定）</span><span><kbd>C</kbd></span></div>
-      <div><span>拡大・縮小（ポインターの位置を中心に。Esc で戻る）</span><span><kbd>Ctrl</kbd> + ホイール</span></div>
+      <div><span>拡大・縮小（ポインターの位置を中心に。「送る」の状態で Esc を押すと戻る）</span><span><kbd>Ctrl</kbd> + ホイール</span></div>
       <div><span>拡大したあとの移動（「送る」のとき、つかんでぐいっと動かす）</span><span>ドラッグ</span></div>
       <div><span>黒画面／白画面</span><span><kbd>B</kbd> <kbd>W</kbd></span></div>
       <div><span>縦長ページのスクロール（幅表示のとき）</span><span><kbd>↓</kbd> <kbd>↑</kbd> ホイール</span></div>
@@ -3908,7 +3908,7 @@ function setTool(t){
     arrow: '大きい矢印で場所を指します', marker: '横になぞる＝1行／斜めに囲む＝範囲の文字すべて',
     eraser: 'なぞった線を消します。E でこのページを全部消す', pen: 'ドラッグで書き込み',
     spot: 'マウスの周りだけ明るく。ホイールで大きさを変えられます',
-    zoom: '範囲拡大：ドラッグで囲んだ所を拡大。クリックで2倍。Esc で戻ります',
+    zoom: '範囲拡大：ドラッグで囲んだ所を拡大。クリックで2倍。拡大は「送る」の状態で Esc で戻ります',
     fix: '修正：ドラッグで囲んだ所を背景色で塗ります（元の文字は残ります）。Alt+クリックで色を指定'
   }[t];
 }
@@ -4036,7 +4036,7 @@ document.addEventListener('keydown', e => {
   const k = e.key, lk = k.length === 1 ? k.toLowerCase() : k;
   if (k === 'Escape'){
     numBuf = '';
-    if (panelOpen) closePanels(); else if (S.black) toggleBlack(false); else if (S.zoom) setZoom(null); else setTool('nav');
+    if (panelOpen) closePanels(); else if (S.black) toggleBlack(false); else if (S.tool !== 'nav') setTool('nav'); else if (S.zoom) setZoom(null); else setTool('nav');
     return;
   }
   if (panelOpen) return;
