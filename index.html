@@ -3749,15 +3749,46 @@ function fixBg(r){
   if (!best) return '#ffffff';
   return '#' + hex2(Math.round(best.R / best.n)) + hex2(Math.round(best.G / best.n)) + hex2(Math.round(best.B / best.n));
 }
-function addFixPatch(z){
-  const r = { x0: Math.max(0, Math.min(z.x0, z.x1)), y0: Math.max(0, Math.min(z.y0, z.y1)), x1: Math.min(1, Math.max(z.x0, z.x1)), y1: Math.min(1, Math.max(z.y0, z.y1)) };
+/* だいたいで囲んでも、かかっている文字は最後まで覆う：矩形の外側の縁に「文字の色」が残っている間、その向きに少しずつ広げる */
+function fixSnap(r, bg){
+  try {
+    const ctx = pdfC.getContext('2d', { willReadFrequently: true }), cw = pdfC.width, ch = pdfC.height;
+    let X0 = Math.floor(r.x0 * cw), X1 = Math.ceil(r.x1 * cw), Y0 = Math.floor(r.y0 * ch), Y1 = Math.ceil(r.y1 * ch);
+    const br = parseInt(bg.slice(1, 3), 16), bgc = parseInt(bg.slice(3, 5), 16), bb = parseInt(bg.slice(5, 7), 16);
+    const inkAt = (x, y, w, h) => {
+      x = Math.max(0, x); y = Math.max(0, y); w = Math.min(cw - x, w); h = Math.min(ch - y, h); if (w <= 0 || h <= 0) return false;
+      const d = ctx.getImageData(x, y, w, h).data;
+      for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - br) + Math.abs(d[i + 1] - bgc) + Math.abs(d[i + 2] - bb) > 70) return true;
+      return false;
+    };
+    const o = fixOrigText({ x0: r.x0, x1: r.x1, y0: r.y0, y1: r.y1 });
+    const cap = Math.max(8, Math.round((o.fs ? o.fs * ch : (Y1 - Y0)) * .7)), st = 2;
+    const used = { l: 0, r: 0, t: 0, b: 0 };
+    for (let pass = 0; pass < 2; pass++){
+      while (used.t < cap && Y0 - st >= 0 && inkAt(X0, Y0 - st, X1 - X0, st)){ Y0 -= st; used.t += st; }
+      while (used.b < cap && Y1 + st <= ch && inkAt(X0, Y1, X1 - X0, st)){ Y1 += st; used.b += st; }
+      while (used.l < cap && X0 - st >= 0 && inkAt(X0 - st, Y0, st, Y1 - Y0)){ X0 -= st; used.l += st; }
+      while (used.r < cap && X1 + st <= cw && inkAt(X1, Y0, st, Y1 - Y0)){ X1 += st; used.r += st; }
+    }
+    const pad = Math.max(2, Math.round(2 * (S.css.dpr || 1)));
+    return { x0: Math.max(0, (X0 - pad) / cw), y0: Math.max(0, (Y0 - pad) / ch), x1: Math.min(1, (X1 + pad) / cw), y1: Math.min(1, (Y1 + pad) / ch) };
+  } catch (e) { return r; }
+}
+function addFixPatch(z, noSnap){
+  let r = { x0: Math.max(0, Math.min(z.x0, z.x1)), y0: Math.max(0, Math.min(z.y0, z.y1)), x1: Math.min(1, Math.max(z.x0, z.x1)), y1: Math.min(1, Math.max(z.y0, z.y1)) };
   if ((r.x1 - r.x0) * S.css.w < 3 || (r.y1 - r.y0) * S.css.h < 3) return;
   const color = S.fixColor || fixBg(r);
+  if (!noSnap) r = fixSnap(r, S.fixColor || color);
   const tc = fixTextColor(r, color), orig = fixOrigText(r);
   const st = { type: 'pen', color, w: 0, fade: false, t: 0, area: r, fill: true, pts: [[r.x0, r.y0], [r.x1, r.y1]], tc, ts: orig.fs || Math.min(.2, (r.y1 - r.y0) * .8), tf: orig.fam || 'g', tb: !!orig.bold, tx: orig.tx == null ? r.x0 : orig.tx, ty: orig.ty == null ? (r.y0 + r.y1) / 2 : orig.ty };
   strokes().push(st);
   dirtyInk = true; inkChanged();
   openFixEdit(st, orig.str);
+}
+function fixHit(x, y){
+  const l = strokes();
+  for (let i = l.length - 1; i >= 0; i--){ const s = l[i]; if (s.area && s.fill && x >= s.area.x0 && x <= s.area.x1 && y >= s.area.y0 && y <= s.area.y1) return s; }
+  return null;
 }
 /* 塗った所にあった元の文字（PDFに文字情報があるとき）。大きさと位置を引き継ぐ */
 function fixOrigText(r){
@@ -3814,8 +3845,8 @@ function placeFixEdit(){
   top = Math.max(ar.top + 8, Math.min(innerHeight - bh - 8, top));
   bar.style.left = Math.max(8, Math.min(innerWidth - bw - 8, rc.left + r.x0 * rc.width)) + 'px'; bar.style.top = top + 'px';
 }
-function openFixEdit(st, orig){
-  fixEdit = { st, orig: orig || '', touched: false };
+function openFixEdit(st, orig, again){
+  fixEdit = { st, orig: orig || '', touched: !!again };
   const bar = $('#fixText'), inp = $('#fixTextIn'); $('#fixTextBold').setAttribute('aria-pressed', String(!!st.tb)); $('#fixTextFam').value = st.tf || 'g'; bar.hidden = false; inp.value = orig || '';
   placeFixEdit(); setTimeout(() => { if (fixEdit && fixEdit.st === st){ inp.focus(); inp.select(); } }, 30);
 }
@@ -3876,7 +3907,11 @@ function onDown(e){
     ptr.zr = { x0: nx, y0: ny, x1: nx, y1: ny, sx: e.clientX, sy: e.clientY };
   } else if (S.tool === 'fix'){
     if (S.fixPicking || e.altKey){ pickFixColor(nx, ny); }
-    else ptr.zr = { x0: nx, y0: ny, x1: nx, y1: ny, sx: e.clientX, sy: e.clientY };
+    else {
+      const hit = fixHit(nx, ny);
+      if (hit) ptr.fm = { st: hit, x: nx, y: ny, a: { x0: hit.area.x0, y0: hit.area.y0, x1: hit.area.x1, y1: hit.area.y1 }, tx: hit.tx, ty: hit.ty, moved: false };
+      else ptr.zr = { x0: nx, y0: ny, x1: nx, y1: ny, sx: e.clientX, sy: e.clientY };
+    }
   } else if (S.tool === 'laser'){ ptr.trail.push({ x: nx, y: ny, t: performance.now() }); }
 }
 function onMove(e){
@@ -3884,6 +3919,17 @@ function onMove(e){
   ptr.x = nx; ptr.y = ny; ptr.in = true; ptr.type = e.pointerType;
   if (S.tool === 'laser' && (e.pointerType === 'mouse' || ptr.down)) ptr.trail.push({ x: nx, y: ny, t: performance.now() });
   if (ptr.zr && ptr.down){ ptr.zr.x1 = nx; ptr.zr.y1 = ny; }
+  if (S.tool === 'fix' && !ptr.down) fx.style.cursor = fixHit(nx, ny) ? 'move' : '';
+  if (ptr.fm && ptr.down){
+    const f = ptr.fm, dx = nx - f.x, dy = ny - f.y;
+    if (!f.moved && Math.hypot(dx * S.css.w, dy * S.css.h) > 4) f.moved = true;
+    if (f.moved){
+      const w = f.a.x1 - f.a.x0, h = f.a.y1 - f.a.y0, x0 = Math.max(0, Math.min(1 - w, f.a.x0 + dx)), y0 = Math.max(0, Math.min(1 - h, f.a.y0 + dy));
+      f.st.area = { x0, y0, x1: x0 + w, y1: y0 + h }; f.st.pts = [[x0, y0], [x0 + w, y0 + h]];
+      if (f.tx != null) f.st.tx = f.tx + (x0 - f.a.x0); if (f.ty != null) f.st.ty = f.ty + (y0 - f.a.y0);
+      dirtyInk = true; inkChanged();
+    }
+  }
   if (S.tool === 'nav' && ptr.down && ptr.start && S.zoom && e.currentTarget === fx && S.css){
     const st = ptr.start;
     if (!st.pan && Math.hypot(e.clientX - st.x, e.clientY - st.y) > 6){ st.pan = true; stage.classList.add('panning'); }
@@ -3922,10 +3968,14 @@ function endPointer(e){
     if (c.type === 'marker' && strokes().includes(c) && game) game.marker();
     inkChanged();
   }
+  if (ptr.fm){
+    const f = ptr.fm; ptr.fm = null;
+    if (e.type === 'pointerup' && !f.moved && strokes().includes(f.st)) openFixEdit(f.st, f.st.txt || '', true); /* 動かさずに押しただけなら、文字を直す入力欄を開く */
+  }
   if (ptr.zr){
     const z = ptr.zr; ptr.zr = null;
     if (e.type === 'pointerup' && S.tool === 'fix'){
-      if (Math.hypot(e.clientX - z.sx, e.clientY - z.sy) >= 8) addFixPatch(z);
+      if (Math.hypot(e.clientX - z.sx, e.clientY - z.sy) >= 8) addFixPatch(z, e.shiftKey);
     } else if (e.type === 'pointerup'){
       const moved = Math.hypot(e.clientX - z.sx, e.clientY - z.sy);
       const r = stage.getBoundingClientRect();
@@ -3995,6 +4045,7 @@ fx.addEventListener('wheel', e => {
 function setTool(t){
   S.tool = t; ptr.trail = [];
   document.querySelectorAll('.tool').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
+  fx.style.cursor = '';
   fx.className = t === 'nav' ? 'c-nav' : t === 'eraser' ? 'c-erase' : (t === 'marker' || t === 'pen' || t === 'zoom' || t === 'fix') ? 'c-draw' : 'c-none';
   closeFixEdit(); S.fixPicking = false; stage.classList.remove('fixPicking'); $('#fixOpt').hidden = t !== 'fix'; fixUI();
   const draws = t === 'marker' || t === 'pen';
@@ -4008,7 +4059,7 @@ function setTool(t){
     eraser: 'なぞった線を消します。E でこのページを全部消す', pen: 'ドラッグで書き込み',
     spot: 'マウスの周りだけ明るく。ホイールで大きさを変えられます',
     zoom: '範囲拡大：ドラッグで囲んだ所を拡大。クリックで2倍。拡大は「送る」の状態で Esc で戻ります',
-    fix: '修正：ドラッグで囲んだ所を背景色で塗り、その上に文字を入れられます（元のPDFは変わりません）。Alt+クリックで色を指定'
+    fix: '修正：ドラッグで囲んだ所を背景色で塗り（かかった文字は端まで覆います。Shiftで解除）、その上に文字を入れられます。塗った所はドラッグで動かせ、クリックで文字を直せます。Alt+クリックで色を指定'
   }[t];
 }
 function buildSwatches(){
