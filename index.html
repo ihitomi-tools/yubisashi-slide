@@ -12,7 +12,7 @@
 <title>ゆびさしスライド</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=M+PLUS+Rounded+1c:wght@500;700;800&family=DotGothic16&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=BIZ+UDPMincho:wght@400;700&family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=DotGothic16&display=swap">
 <style>
 /* Layout: one-screen app — slim tool bar on top, the slide on a dark stage, page controls below. Full screen hides both bars. */
 :root{
@@ -75,6 +75,7 @@ button,input,label.btn{font:inherit;color:inherit}
 #fixText[hidden]{display:none}
 #fixTextIn{flex:1 1 150px;min-width:0;height:36px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);font:700 16px var(--f-body);padding:0 10px}
 #fixText .btn{height:32px;border-radius:9px}
+#fixTextFam{height:32px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);font:700 13px var(--f-body);padding:0 6px}
 #fixText .btn[aria-pressed=true]{background:var(--accent,#ffc93c);color:#1b1b1b;border-color:transparent}
 #fixText .fixHint{flex:1 0 100%;font-size:11px;color:var(--muted)}
 #app.immersive.idle #zoomChip{opacity:0}
@@ -735,7 +736,7 @@ body.proj{background:#000}
       <canvas id="fx" class="c-nav" aria-label="スライド"></canvas>
     </div>
     <button id="stageBig" type="button" aria-pressed="false" title="映っているところを広げる（ツール以外いっぱいに）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
-    <div id="fixText" hidden role="group" aria-label="塗った所に文字を入れる"><input id="fixTextIn" type="text" maxlength="40" autocomplete="off" placeholder="書きかえる文字" aria-label="書きかえる文字"><button class="btn" id="fixTextSm" type="button" title="文字を小さく">A−</button><button class="btn" id="fixTextLg" type="button" title="文字を大きく">A＋</button><button class="btn" id="fixTextBold" type="button" aria-pressed="false" title="太字にする"><b>B</b></button><button class="btn" id="fixTextOk" type="button" title="決める（Enter）">決める</button><span class="fixHint">Enter：決める　Esc：文字なし</span></div>
+    <div id="fixText" hidden role="group" aria-label="塗った所に文字を入れる"><input id="fixTextIn" type="text" maxlength="40" autocomplete="off" placeholder="書きかえる文字" aria-label="書きかえる文字"><select id="fixTextFam" aria-label="文字の種類" title="文字の種類（自動で近いものを選びます）"><option value="g">ゴシック</option><option value="m">明朝</option><option value="r">丸ゴシック</option></select><button class="btn" id="fixTextSm" type="button" title="文字を小さく">A−</button><button class="btn" id="fixTextLg" type="button" title="文字を大きく">A＋</button><button class="btn" id="fixTextBold" type="button" aria-pressed="false" title="太字にする"><b>B</b></button><button class="btn" id="fixTextOk" type="button" title="決める（Enter）">決める</button><span class="fixHint">Enter：決める　Esc：文字なし</span></div>
     <div id="zoomChip" hidden><span id="zoomLbl">拡大中</span><button class="btn" id="zoomOut">元に戻す（Esc）</button></div>
     <div id="loading" hidden>読み込み中…</div>
     <div id="black" hidden><span>もう一度押すか Esc で戻ります</span></div>
@@ -3398,7 +3399,7 @@ async function pdfSource(file){
         if (Math.abs(t[1]) > Math.abs(t[0]) * .1) continue; /* skip vertical or rotated text */
         const fh = Math.hypot(t[2], t[3]); if (!fh) continue;
         const x0 = t[4], y = t[5], w = it.width * vp.scale;
-        out.push({ x0: x0 / vp.width, x1: (x0 + w) / vp.width, top: (y - fh * .88) / vp.height, bot: (y + fh * .14) / vp.height, s: it.str, fs: fh / vp.height });
+        out.push({ x0: x0 / vp.width, x1: (x0 + w) / vp.width, top: (y - fh * .88) / vp.height, bot: (y + fh * .14) / vp.height, s: it.str, fs: fh / vp.height, fn: it.fontName, ff: (tc.styles[it.fontName] || {}).fontFamily, pgp: p });
       }
       return tb[i] = out;
     },
@@ -3544,9 +3545,9 @@ function drawInk(now){
         if (s.txt){
           /* 修正の上に入れた文字：元の大きさに合わせ、長いときは塗った幅に収まるよう縮める */
           let px = (s.ts || .03) * H; const tx = (s.tx == null ? r.x0 : s.tx) * W, ty = (s.ty == null ? (r.y0 + r.y1) / 2 : s.ty) * H;
-          const fw = s.tb ? 700 : 400; x.font = `${fw} ${px}px ${BODY}`; const tw = x.measureText(s.txt).width, mw = Math.max(8, r.x1 * W - tx);
-          if (tw > mw){ px = Math.max(px * .5, px * mw / tw); x.font = `${fw} ${px}px ${BODY}`; }
-          x.fillStyle = s.tc || '#1b1b1b'; x.textAlign = 'left'; x.textBaseline = 'middle'; x.fillText(s.txt, tx, ty); ensureFont(s.txt);
+          const fw = s.tb ? 700 : 400, fam = FIXFAM[s.tf] || FIXFAM.g; x.font = `${fw} ${px}px ${fam}`; const tw = x.measureText(s.txt).width, mw = Math.max(8, r.x1 * W - tx);
+          if (tw > mw){ px = Math.max(px * .5, px * mw / tw); x.font = `${fw} ${px}px ${fam}`; }
+          x.fillStyle = s.tc || '#1b1b1b'; x.textAlign = 'left'; x.textBaseline = 'middle'; x.fillText(s.txt, tx, ty); ensureFont(s.txt, s.tf);
         }
       }
       else { x.lineCap = 'butt'; for (const [a, b, cy, w] of s.lines || []){ x.lineWidth = w * H; x.beginPath(); x.moveTo(a * W, cy * H); x.lineTo(b * W, cy * H); x.stroke(); } }
@@ -3753,7 +3754,7 @@ function addFixPatch(z){
   if ((r.x1 - r.x0) * S.css.w < 3 || (r.y1 - r.y0) * S.css.h < 3) return;
   const color = S.fixColor || fixBg(r);
   const tc = fixTextColor(r, color), orig = fixOrigText(r);
-  const st = { type: 'pen', color, w: 0, fade: false, t: 0, area: r, fill: true, pts: [[r.x0, r.y0], [r.x1, r.y1]], tc, ts: orig.fs || Math.min(.2, (r.y1 - r.y0) * .8), tx: orig.tx == null ? r.x0 : orig.tx, ty: orig.ty == null ? (r.y0 + r.y1) / 2 : orig.ty };
+  const st = { type: 'pen', color, w: 0, fade: false, t: 0, area: r, fill: true, pts: [[r.x0, r.y0], [r.x1, r.y1]], tc, ts: orig.fs || Math.min(.2, (r.y1 - r.y0) * .8), tf: orig.fam || 'g', tb: !!orig.bold, tx: orig.tx == null ? r.x0 : orig.tx, ty: orig.ty == null ? (r.y0 + r.y1) / 2 : orig.ty };
   strokes().push(st);
   dirtyInk = true; inkChanged();
   openFixEdit(st, orig.str);
@@ -3769,7 +3770,8 @@ function fixOrigText(r){
     return [...b.s].slice(i0, Math.max(i0, i1)).join('');
   }).join('');
   const f = hit[0];
-  return { str, fs: Math.max(...hit.map(b => b.fs)), tx: Math.max(f.x0, r.x0), ty: (f.top + f.bot) / 2 };
+  const big = hit.reduce((a, b) => (b.fs > a.fs ? b : a), hit[0]), g = fixFontGuess(big);
+  return { str, fs: big.fs, tx: Math.max(f.x0, r.x0), ty: (f.top + f.bot) / 2, fam: g.fam, bold: g.bold };
 }
 /* 文字の色：塗った所にあった、背景からいちばん離れた色（なければ背景に対して読める黒か白） */
 function fixTextColor(r, bg){
@@ -3787,7 +3789,21 @@ function fixTextColor(r, bg){
   } catch (e) { return '#1b1b1b'; }
 }
 const _fl = new Set();
-function ensureFont(s){ if (_fl.has(s)) return; _fl.add(s); try { for (const w of [400, 700]) document.fonts.load(w + ' 40px "BIZ UDPGothic"', s).then(() => { dirtyInk = true; }).catch(() => {}); } catch (e) {} }
+const FIXFAM = { g: '"BIZ UDPGothic", sans-serif', m: '"BIZ UDPMincho", serif', r: '"M PLUS Rounded 1c", sans-serif' };
+function ensureFont(s, f){ const k = (f || 'g') + s; if (_fl.has(k)) return; _fl.add(k); try { for (const w of [400, 700]) document.fonts.load(w + ' 40px ' + (FIXFAM[f] || FIXFAM.g), s).then(() => { dirtyInk = true; }).catch(() => {}); } catch (e) {} }
+/* PDFのフォント名から、近い種類（ゴシック／明朝／丸ゴシック）と太さを推し量る */
+function fixFontGuess(b){
+  let name = '', bold = false;
+  try { if (b.pgp && b.fn && b.pgp.commonObjs.has(b.fn)){ const fo = b.pgp.commonObjs.get(b.fn); name = String(fo.name || ''); bold = !!(fo.bold || fo.black); } } catch (e) {}
+  name = name.replace(/^[A-Z]{6}\+/, '');
+  if (/(bold|black|heavy|semibold|demi|extrabold|-w[6-9]\b|ｂ|-b$)/i.test(name)) bold = true;
+  let fam = 'g';
+  if (/(maru|丸|rounded)/i.test(name)) fam = 'r';
+  else if (/(mincho|明朝|serif|times|minion|garamond|georgia|palatino|cambria|ryumin|song|ming|bookman|century)/i.test(name) && !/sans/i.test(name)) fam = 'm';
+  else if (/(gothic|ゴシック|sans|arial|helvetica|meiryo|メイリオ|calibri|verdana|noto ?sans|ud ?p?gothic|segoe|tahoma)/i.test(name)) fam = 'g';
+  else if (b.ff === 'serif') fam = 'm';
+  return { fam, bold, name };
+}
 /* 塗った所の上に、短い文字を入れる小さな入力欄 */
 let fixEdit = null;
 function placeFixEdit(){
@@ -3800,7 +3816,7 @@ function placeFixEdit(){
 }
 function openFixEdit(st, orig){
   fixEdit = { st, orig: orig || '', touched: false };
-  const bar = $('#fixText'), inp = $('#fixTextIn'); $('#fixTextBold').setAttribute('aria-pressed', 'false'); bar.hidden = false; inp.value = orig || '';
+  const bar = $('#fixText'), inp = $('#fixTextIn'); $('#fixTextBold').setAttribute('aria-pressed', String(!!st.tb)); $('#fixTextFam').value = st.tf || 'g'; bar.hidden = false; inp.value = orig || '';
   placeFixEdit(); setTimeout(() => { if (fixEdit && fixEdit.st === st){ inp.focus(); inp.select(); } }, 30);
 }
 function closeFixEdit(){ fixEdit = null; const bar = $('#fixText'); if (bar) bar.hidden = true; }
@@ -3816,6 +3832,7 @@ $('#fixTextIn').addEventListener('keydown', e => {
   else if (e.key === 'Escape'){ e.preventDefault(); if (fixEdit){ fixEdit.st.txt = ''; dirtyInk = true; inkChanged(); } closeFixEdit(); }
 });
 $('#fixTextBold').onclick = () => { if (fixEdit){ const s = fixEdit.st; s.tb = !s.tb; $('#fixTextBold').setAttribute('aria-pressed', String(!!s.tb)); dirtyInk = true; inkChanged(); $('#fixTextIn').focus(); } };
+$('#fixTextFam').onchange = () => { if (fixEdit){ fixEdit.st.tf = $('#fixTextFam').value; dirtyInk = true; inkChanged(); $('#fixTextIn').focus(); } };
 $('#fixTextOk').onclick = () => { if (fixEdit && !fixEdit.touched){ fixEdit.st.txt = ''; dirtyInk = true; inkChanged(); } closeFixEdit(); };
 $('#fixTextSm').onclick = () => { if (fixEdit){ fixEdit.st.ts = Math.max(.008, (fixEdit.st.ts || .03) * .92); dirtyInk = true; inkChanged(); $('#fixTextIn').focus(); } };
 $('#fixTextLg').onclick = () => { if (fixEdit){ fixEdit.st.ts = Math.min(.4, (fixEdit.st.ts || .03) * 1.09); dirtyInk = true; inkChanged(); $('#fixTextIn').focus(); } };
@@ -4731,7 +4748,7 @@ function encStroke(s, budget){
   const o = { k: s.type === 'marker' ? 'm' : 'p', c: s.color, w: +(s.w || 0).toFixed(4), f: s.fade ? 1 : 0 };
   if (s.area){
     o.a = [s.area.x0, s.area.y0, s.area.x1, s.area.y1].map(r3);
-    if (s.fill){ o.F = 1; if (s.txt){ o.t = String(s.txt).slice(0, 60); o.tc = s.tc; o.ts = r3(s.ts || .03); if (s.tb) o.tb = 1; o.tx = r3(s.tx == null ? s.area.x0 : s.tx); o.ty = r3(s.ty == null ? (s.area.y0 + s.area.y1) / 2 : s.ty); } } else o.l = (s.lines || []).map(l => l.map(r3));
+    if (s.fill){ o.F = 1; if (s.txt){ o.t = String(s.txt).slice(0, 60); o.tc = s.tc; o.ts = r3(s.ts || .03); if (s.tb) o.tb = 1; if (s.tf && s.tf !== 'g') o.tf = s.tf; o.tx = r3(s.tx == null ? s.area.x0 : s.tx); o.ty = r3(s.ty == null ? (s.area.y0 + s.area.y1) / 2 : s.ty); } } else o.l = (s.lines || []).map(l => l.map(r3));
     return o;
   }
   const pts = s.pts; let step = 1, out;
@@ -4751,7 +4768,7 @@ function decStroke(o, t){
   if (o.a){
     const A = arr(o.a).map(Number);
     s.area = { x0: A[0], y0: A[1], x1: A[2], y1: A[3] };
-    if (o.F){ s.fill = true; if (o.t){ s.txt = String(o.t).slice(0, 60); s.tc = String(o.tc || '#1b1b1b').slice(0, 9); s.ts = Number(o.ts) || .03; if (o.tb) s.tb = true; s.tx = Number(o.tx); s.ty = Number(o.ty); } } else s.lines = arr(o.l).map(l => arr(l).map(Number));
+    if (o.F){ s.fill = true; if (o.t){ s.txt = String(o.t).slice(0, 60); s.tc = String(o.tc || '#1b1b1b').slice(0, 9); s.ts = Number(o.ts) || .03; if (o.tb) s.tb = true; if (o.tf === 'm' || o.tf === 'r') s.tf = o.tf; s.tx = Number(o.tx); s.ty = Number(o.ty); } } else s.lines = arr(o.l).map(l => arr(l).map(Number));
     s.pts = [[A[0], A[1]], [A[2], A[3]]];
   } else {
     s.pts = arr(o.p).map(p => arr(p).map(Number));
