@@ -71,6 +71,12 @@ button,input,label.btn{font:inherit;color:inherit}
 #sheet{position:relative;box-shadow:0 8px 40px rgba(0,0,0,.45);background:#fff;transform-origin:0 0;transition:transform .38s cubic-bezier(.2,.7,.2,1)}
 #zoomChip{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:3;display:flex;gap:8px;align-items:center;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:4px 5px 4px 14px;font-family:var(--f-disp);font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.35);white-space:nowrap;transition:opacity .3s}
 #zoomChip .btn{height:28px;border-radius:999px}
+#fixText{position:fixed;z-index:40;display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:min(420px,calc(100vw - 16px));background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:8px;box-shadow:0 6px 22px rgba(0,0,0,.4);font-family:var(--f-body)}
+#fixText[hidden]{display:none}
+#fixTextIn{flex:1 1 150px;min-width:0;height:36px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);font:700 16px var(--f-body);padding:0 10px}
+#fixText .btn{height:32px;border-radius:9px}
+#fixText .btn[aria-pressed=true]{background:var(--accent,#ffc93c);color:#1b1b1b;border-color:transparent}
+#fixText .fixHint{flex:1 0 100%;font-size:11px;color:var(--muted)}
 #app.immersive.idle #zoomChip{opacity:0}
 #sheet canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #inkM{mix-blend-mode:multiply}
@@ -729,6 +735,7 @@ body.proj{background:#000}
       <canvas id="fx" class="c-nav" aria-label="スライド"></canvas>
     </div>
     <button id="stageBig" type="button" aria-pressed="false" title="映っているところを広げる（ツール以外いっぱいに）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    <div id="fixText" hidden role="group" aria-label="塗った所に文字を入れる"><input id="fixTextIn" type="text" maxlength="40" autocomplete="off" placeholder="書きかえる文字" aria-label="書きかえる文字"><button class="btn" id="fixTextSm" type="button" title="文字を小さく">A−</button><button class="btn" id="fixTextLg" type="button" title="文字を大きく">A＋</button><button class="btn" id="fixTextBold" type="button" aria-pressed="false" title="太字にする"><b>B</b></button><button class="btn" id="fixTextOk" type="button" title="決める（Enter）">決める</button><span class="fixHint">Enter：決める　Esc：文字なし</span></div>
     <div id="zoomChip" hidden><span id="zoomLbl">拡大中</span><button class="btn" id="zoomOut">元に戻す（Esc）</button></div>
     <div id="loading" hidden>読み込み中…</div>
     <div id="black" hidden><span>もう一度押すか Esc で戻ります</span></div>
@@ -832,7 +839,7 @@ body.proj{background:#000}
       <div><span>書き込みを全部消す／1つ戻す</span><span><kbd>E</kbd> <kbd>Ctrl+Z</kbd></span></div>
       <div><span>スポットライト（ホイールで大きさ）</span><span><kbd>S</kbd></span></div>
       <div><span>範囲拡大（囲んだ所を拡大。「送る」の状態で Esc を押すと戻る）</span><span><kbd>Z</kbd></span></div>
-      <div><span>修正（囲んだ所を背景色で塗って隠す。元のPDFは変わらない。Alt+クリックで色を指定）</span><span><kbd>C</kbd></span></div>
+      <div><span>修正（囲んだ所を背景色で塗って隠し、短い文字を入れ直せる。元のPDFは変わらない。Alt+クリックで色を指定）</span><span><kbd>C</kbd></span></div>
       <div><span>拡大・縮小（ポインターの位置を中心に。「送る」の状態で Esc を押すと戻る）</span><span><kbd>Ctrl</kbd> + ホイール</span></div>
       <div><span>拡大したあとの移動（「送る」のとき、つかんでぐいっと動かす）</span><span>ドラッグ</span></div>
       <div><span>黒画面／白画面</span><span><kbd>B</kbd> <kbd>W</kbd></span></div>
@@ -3391,7 +3398,7 @@ async function pdfSource(file){
         if (Math.abs(t[1]) > Math.abs(t[0]) * .1) continue; /* skip vertical or rotated text */
         const fh = Math.hypot(t[2], t[3]); if (!fh) continue;
         const x0 = t[4], y = t[5], w = it.width * vp.scale;
-        out.push({ x0: x0 / vp.width, x1: (x0 + w) / vp.width, top: (y - fh * .88) / vp.height, bot: (y + fh * .14) / vp.height });
+        out.push({ x0: x0 / vp.width, x1: (x0 + w) / vp.width, top: (y - fh * .88) / vp.height, bot: (y + fh * .14) / vp.height, s: it.str, fs: fh / vp.height });
       }
       return tb[i] = out;
     },
@@ -3489,7 +3496,7 @@ function go(i, toEnd){
   if (!S.src) return;
   i = Math.max(0, Math.min(S.src.count - 1, i));
   if (i === S.page && pdfC.width) return;
-  const prevPage = S.page; S.page = i; ptr.trail = []; ptr.cur = null; ptr.zr = null; ptr.mr = null; /* 拡大はページを送っても保つ（Escか「元に戻す」で解除） */
+  const prevPage = S.page; S.page = i; ptr.trail = []; ptr.cur = null; closeFixEdit(); ptr.zr = null; ptr.mr = null; /* 拡大はページを送っても保つ（Escか「元に戻す」で解除） */
   if (S.zoom && prevPage >= 0){ const fh = fit(i).h; const hv = stage.clientHeight / (2 * S.zoom.z * fh); S.zoom = { z: S.zoom.z, cx: S.zoom.cx, cy: toEnd ? Math.max(.5, 1 - hv) : Math.min(.5, hv) }; } /* 倍率と横位置は保ち、縦は新しいページの頭から */
   const src = S.src; src.text && src.text(i).then(b => { if (S.src === src) S.text.set(i, b); }).catch(() => {});
   $('#pageNo').value = i + 1;
@@ -3532,7 +3539,16 @@ function drawInk(now){
     const x = s.type === 'marker' ? m : p;
     x.globalAlpha = a; x.strokeStyle = s.color; x.lineCap = 'round'; x.lineJoin = 'round';
     if (s.area){
-      if (s.fill){ const r = s.area; x.fillStyle = s.color; x.fillRect(r.x0 * W, r.y0 * H, (r.x1 - r.x0) * W, (r.y1 - r.y0) * H); }
+      if (s.fill){
+        const r = s.area; x.fillStyle = s.color; x.fillRect(r.x0 * W, r.y0 * H, (r.x1 - r.x0) * W, (r.y1 - r.y0) * H);
+        if (s.txt){
+          /* 修正の上に入れた文字：元の大きさに合わせ、長いときは塗った幅に収まるよう縮める */
+          let px = (s.ts || .03) * H; const tx = (s.tx == null ? r.x0 : s.tx) * W, ty = (s.ty == null ? (r.y0 + r.y1) / 2 : s.ty) * H;
+          const fw = s.tb ? 700 : 400; x.font = `${fw} ${px}px ${BODY}`; const tw = x.measureText(s.txt).width, mw = Math.max(8, r.x1 * W - tx);
+          if (tw > mw){ px = Math.max(px * .5, px * mw / tw); x.font = `${fw} ${px}px ${BODY}`; }
+          x.fillStyle = s.tc || '#1b1b1b'; x.textAlign = 'left'; x.textBaseline = 'middle'; x.fillText(s.txt, tx, ty); ensureFont(s.txt);
+        }
+      }
       else { x.lineCap = 'butt'; for (const [a, b, cy, w] of s.lines || []){ x.lineWidth = w * H; x.beginPath(); x.moveTo(a * W, cy * H); x.lineTo(b * W, cy * H); x.stroke(); } }
       continue;
     }
@@ -3736,9 +3752,74 @@ function addFixPatch(z){
   const r = { x0: Math.max(0, Math.min(z.x0, z.x1)), y0: Math.max(0, Math.min(z.y0, z.y1)), x1: Math.min(1, Math.max(z.x0, z.x1)), y1: Math.min(1, Math.max(z.y0, z.y1)) };
   if ((r.x1 - r.x0) * S.css.w < 3 || (r.y1 - r.y0) * S.css.h < 3) return;
   const color = S.fixColor || fixBg(r);
-  strokes().push({ type: 'pen', color, w: 0, fade: false, t: 0, area: r, fill: true, pts: [[r.x0, r.y0], [r.x1, r.y1]] });
+  const tc = fixTextColor(r, color), orig = fixOrigText(r);
+  const st = { type: 'pen', color, w: 0, fade: false, t: 0, area: r, fill: true, pts: [[r.x0, r.y0], [r.x1, r.y1]], tc, ts: orig.fs || Math.min(.2, (r.y1 - r.y0) * .8), tx: orig.tx == null ? r.x0 : orig.tx, ty: orig.ty == null ? (r.y0 + r.y1) / 2 : orig.ty };
+  strokes().push(st);
   dirtyInk = true; inkChanged();
+  openFixEdit(st, orig.str);
 }
+/* 塗った所にあった元の文字（PDFに文字情報があるとき）。大きさと位置を引き継ぐ */
+function fixOrigText(r){
+  const bs = S.text.get(S.page); if (!bs) return {};
+  const hit = bs.filter(b => { const cy = (b.top + b.bot) / 2; return cy >= r.y0 && cy <= r.y1 && b.x1 > r.x0 && b.x0 < r.x1; }).sort((a, b) => ((a.top + a.bot) - (b.top + b.bot)) || (a.x0 - b.x0));
+  if (!hit.length) return {};
+  const str = hit.map(b => {
+    const n = [...b.s].length, w = b.x1 - b.x0; if (!w || !n) return '';
+    const i0 = Math.max(0, Math.floor((r.x0 - b.x0) / w * n + .15)), i1 = Math.min(n, Math.ceil((r.x1 - b.x0) / w * n - .15));
+    return [...b.s].slice(i0, Math.max(i0, i1)).join('');
+  }).join('');
+  const f = hit[0];
+  return { str, fs: Math.max(...hit.map(b => b.fs)), tx: Math.max(f.x0, r.x0), ty: (f.top + f.bot) / 2 };
+}
+/* 文字の色：塗った所にあった、背景からいちばん離れた色（なければ背景に対して読める黒か白） */
+function fixTextColor(r, bg){
+  try {
+    const ctx = pdfC.getContext('2d', { willReadFrequently: true }), cw = pdfC.width, ch = pdfC.height;
+    const X0 = Math.max(0, Math.floor(r.x0 * cw)), X1 = Math.min(cw, Math.ceil(r.x1 * cw)), Y0 = Math.max(0, Math.floor(r.y0 * ch)), Y1 = Math.min(ch, Math.ceil(r.y1 * ch));
+    const bw = X1 - X0, bh = Y1 - Y0; const br = parseInt(bg.slice(1, 3), 16), bgc = parseInt(bg.slice(3, 5), 16), bb = parseInt(bg.slice(5, 7), 16);
+    let best = null, bd = 0;
+    if (bw > 0 && bh > 0 && bw * bh < 4e6){
+      const d = ctx.getImageData(X0, Y0, bw, bh).data;
+      for (let i = 0; i < d.length; i += 4){ const k = Math.abs(d[i] - br) + Math.abs(d[i + 1] - bgc) + Math.abs(d[i + 2] - bb); if (k > bd){ bd = k; best = i; } }
+      if (best != null && bd >= 150) return '#' + hex2(d[best]) + hex2(d[best + 1]) + hex2(d[best + 2]);
+    }
+    return (br * 299 + bgc * 587 + bb * 114) / 1000 > 140 ? '#1b1b1b' : '#ffffff';
+  } catch (e) { return '#1b1b1b'; }
+}
+const _fl = new Set();
+function ensureFont(s){ if (_fl.has(s)) return; _fl.add(s); try { for (const w of [400, 700]) document.fonts.load(w + ' 40px "BIZ UDPGothic"', s).then(() => { dirtyInk = true; }).catch(() => {}); } catch (e) {} }
+/* 塗った所の上に、短い文字を入れる小さな入力欄 */
+let fixEdit = null;
+function placeFixEdit(){
+  if (!fixEdit) return;
+  const bar = $('#fixText'), rc = sheet.getBoundingClientRect(), r = fixEdit.st.area, ar = app.getBoundingClientRect();
+  const bw = bar.offsetWidth || 320, bh = bar.offsetHeight || 44;
+  let top = rc.top + r.y1 * rc.height + 8; if (top + bh > innerHeight - 8) top = rc.top + r.y0 * rc.height - bh - 8;
+  top = Math.max(ar.top + 8, Math.min(innerHeight - bh - 8, top));
+  bar.style.left = Math.max(8, Math.min(innerWidth - bw - 8, rc.left + r.x0 * rc.width)) + 'px'; bar.style.top = top + 'px';
+}
+function openFixEdit(st, orig){
+  fixEdit = { st, orig: orig || '', touched: false };
+  const bar = $('#fixText'), inp = $('#fixTextIn'); $('#fixTextBold').setAttribute('aria-pressed', 'false'); bar.hidden = false; inp.value = orig || '';
+  placeFixEdit(); setTimeout(() => { if (fixEdit && fixEdit.st === st){ inp.focus(); inp.select(); } }, 30);
+}
+function closeFixEdit(){ fixEdit = null; const bar = $('#fixText'); if (bar) bar.hidden = true; }
+function fixEditApply(){
+  if (!fixEdit) return;
+  if (!strokes().includes(fixEdit.st)){ closeFixEdit(); return; }
+  fixEdit.st.txt = $('#fixTextIn').value.slice(0, 40); dirtyInk = true; inkChanged();
+}
+$('#fixTextIn').addEventListener('input', () => { if (fixEdit){ fixEdit.touched = true; fixEditApply(); } });
+$('#fixTextIn').addEventListener('keydown', e => {
+  e.stopPropagation();
+  if (e.key === 'Enter'){ e.preventDefault(); if (!fixEdit || !fixEdit.touched) { if (fixEdit) fixEdit.st.txt = ''; dirtyInk = true; inkChanged(); } closeFixEdit(); }
+  else if (e.key === 'Escape'){ e.preventDefault(); if (fixEdit){ fixEdit.st.txt = ''; dirtyInk = true; inkChanged(); } closeFixEdit(); }
+});
+$('#fixTextBold').onclick = () => { if (fixEdit){ const s = fixEdit.st; s.tb = !s.tb; $('#fixTextBold').setAttribute('aria-pressed', String(!!s.tb)); dirtyInk = true; inkChanged(); $('#fixTextIn').focus(); } };
+$('#fixTextOk').onclick = () => { if (fixEdit && !fixEdit.touched){ fixEdit.st.txt = ''; dirtyInk = true; inkChanged(); } closeFixEdit(); };
+$('#fixTextSm').onclick = () => { if (fixEdit){ fixEdit.st.ts = Math.max(.008, (fixEdit.st.ts || .03) * .92); dirtyInk = true; inkChanged(); $('#fixTextIn').focus(); } };
+$('#fixTextLg').onclick = () => { if (fixEdit){ fixEdit.st.ts = Math.min(.4, (fixEdit.st.ts || .03) * 1.09); dirtyInk = true; inkChanged(); $('#fixTextIn').focus(); } };
+addEventListener('resize', placeFixEdit);
 function pickFixColor(nx, ny){
   const ctx = pdfC.getContext('2d', { willReadFrequently: true });
   const [R, G, B] = pixelAt(ctx, nx * pdfC.width, ny * pdfC.height);
@@ -3754,6 +3835,7 @@ function fixUI(){
 $('#fixPick').onclick = () => { S.fixPicking = !S.fixPicking; stage.classList.toggle('fixPicking', S.fixPicking); fixUI(); };
 $('#fixAuto').onclick = () => { S.fixColor = null; S.fixPicking = false; stage.classList.remove('fixPicking'); fixUI(); };
 function onDown(e){
+  if (fixEdit) closeFixEdit();
   if (e.button > 0) return;
   if (e.currentTarget === fx && !(game && game.on) && e.pointerType !== 'mouse' && app.classList.contains('immersive') && S.tool === 'nav'){
     /* in full screen, a tap near the top or bottom edge only shows the bars */
@@ -3897,7 +3979,7 @@ function setTool(t){
   S.tool = t; ptr.trail = [];
   document.querySelectorAll('.tool').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
   fx.className = t === 'nav' ? 'c-nav' : t === 'eraser' ? 'c-erase' : (t === 'marker' || t === 'pen' || t === 'zoom' || t === 'fix') ? 'c-draw' : 'c-none';
-  S.fixPicking = false; stage.classList.remove('fixPicking'); $('#fixOpt').hidden = t !== 'fix'; fixUI();
+  closeFixEdit(); S.fixPicking = false; stage.classList.remove('fixPicking'); $('#fixOpt').hidden = t !== 'fix'; fixUI();
   const draws = t === 'marker' || t === 'pen';
   const inky = draws || t === 'eraser' || t === 'fix';
   $('#swatches').hidden = !draws; $('#fadeWrap').hidden = !draws; $('#undo').hidden = !inky; $('#clear').hidden = !inky;
@@ -3909,7 +3991,7 @@ function setTool(t){
     eraser: 'なぞった線を消します。E でこのページを全部消す', pen: 'ドラッグで書き込み',
     spot: 'マウスの周りだけ明るく。ホイールで大きさを変えられます',
     zoom: '範囲拡大：ドラッグで囲んだ所を拡大。クリックで2倍。拡大は「送る」の状態で Esc で戻ります',
-    fix: '修正：ドラッグで囲んだ所を背景色で塗ります（元の文字は残ります）。Alt+クリックで色を指定'
+    fix: '修正：ドラッグで囲んだ所を背景色で塗り、その上に文字を入れられます（元のPDFは変わりません）。Alt+クリックで色を指定'
   }[t];
 }
 function buildSwatches(){
@@ -4649,7 +4731,7 @@ function encStroke(s, budget){
   const o = { k: s.type === 'marker' ? 'm' : 'p', c: s.color, w: +(s.w || 0).toFixed(4), f: s.fade ? 1 : 0 };
   if (s.area){
     o.a = [s.area.x0, s.area.y0, s.area.x1, s.area.y1].map(r3);
-    if (s.fill) o.F = 1; else o.l = (s.lines || []).map(l => l.map(r3));
+    if (s.fill){ o.F = 1; if (s.txt){ o.t = String(s.txt).slice(0, 60); o.tc = s.tc; o.ts = r3(s.ts || .03); if (s.tb) o.tb = 1; o.tx = r3(s.tx == null ? s.area.x0 : s.tx); o.ty = r3(s.ty == null ? (s.area.y0 + s.area.y1) / 2 : s.ty); } } else o.l = (s.lines || []).map(l => l.map(r3));
     return o;
   }
   const pts = s.pts; let step = 1, out;
@@ -4669,7 +4751,7 @@ function decStroke(o, t){
   if (o.a){
     const A = arr(o.a).map(Number);
     s.area = { x0: A[0], y0: A[1], x1: A[2], y1: A[3] };
-    if (o.F) s.fill = true; else s.lines = arr(o.l).map(l => arr(l).map(Number));
+    if (o.F){ s.fill = true; if (o.t){ s.txt = String(o.t).slice(0, 60); s.tc = String(o.tc || '#1b1b1b').slice(0, 9); s.ts = Number(o.ts) || .03; if (o.tb) s.tb = true; s.tx = Number(o.tx); s.ty = Number(o.ty); } } else s.lines = arr(o.l).map(l => arr(l).map(Number));
     s.pts = [[A[0], A[1]], [A[2], A[3]]];
   } else {
     s.pts = arr(o.p).map(p => arr(p).map(Number));
