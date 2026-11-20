@@ -3490,6 +3490,7 @@ function go(i, toEnd){
   i = Math.max(0, Math.min(S.src.count - 1, i));
   if (i === S.page && pdfC.width) return;
   const prevPage = S.page; S.page = i; ptr.trail = []; ptr.cur = null; ptr.zr = null; ptr.mr = null; /* 拡大はページを送っても保つ（Escか「元に戻す」で解除） */
+  if (S.zoom && prevPage >= 0){ const fh = fit(i).h; S.zoom = { z: S.zoom.z, cx: S.zoom.cx, cy: Math.min(.5, stage.clientHeight / (2 * S.zoom.z * fh)) }; } /* 倍率と横位置は保ち、縦は新しいページの頭から */
   const src = S.src; src.text && src.text(i).then(b => { if (S.src === src) S.text.set(i, b); }).catch(() => {});
   $('#pageNo').value = i + 1;
   $('#progress').style.width = (S.src.count > 1 ? (i / (S.src.count - 1)) * 100 : 100) + '%';
