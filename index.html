@@ -3490,7 +3490,7 @@ function go(i, toEnd){
   i = Math.max(0, Math.min(S.src.count - 1, i));
   if (i === S.page && pdfC.width) return;
   const prevPage = S.page; S.page = i; ptr.trail = []; ptr.cur = null; ptr.zr = null; ptr.mr = null; /* 拡大はページを送っても保つ（Escか「元に戻す」で解除） */
-  if (S.zoom && prevPage >= 0){ const fh = fit(i).h; S.zoom = { z: S.zoom.z, cx: S.zoom.cx, cy: Math.min(.5, stage.clientHeight / (2 * S.zoom.z * fh)) }; } /* 倍率と横位置は保ち、縦は新しいページの頭から */
+  if (S.zoom && prevPage >= 0){ const fh = fit(i).h; const hv = stage.clientHeight / (2 * S.zoom.z * fh); S.zoom = { z: S.zoom.z, cx: S.zoom.cx, cy: toEnd ? Math.max(.5, 1 - hv) : Math.min(.5, hv) }; } /* 倍率と横位置は保ち、縦は新しいページの頭から */
   const src = S.src; src.text && src.text(i).then(b => { if (S.src === src) S.text.set(i, b); }).catch(() => {});
   $('#pageNo').value = i + 1;
   $('#progress').style.width = (S.src.count > 1 ? (i / (S.src.count - 1)) * 100 : 100) + '%';
@@ -3877,6 +3877,11 @@ fx.addEventListener('wheel', e => {
     setZoom({ z: z2, cx: cl(u + (stage.clientWidth / 2 - px) / (z2 * w)), cy: cl(v + (stage.clientHeight / 2 - py) / (z2 * h)) });
     return;
   }
+  if (S.zoom && S.tool !== 'marker' && S.tool !== 'spot'){
+    e.preventDefault();
+    const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? stage.clientHeight : 1;
+    panZoom(e.deltaX * k, e.deltaY * k); return;
+  }
   if (S.tool === 'marker'){
     e.preventDefault();
     S.mw = Math.max(.012, Math.min(.09, S.mw * (e.deltaY > 0 ? 0.9 : 1.1))); store.set('mw', S.mw);
@@ -4004,7 +4009,17 @@ async function buildGrid(){
 
 /* ---------- keyboard (PowerPoint-style) ---------- */
 let numBuf = '', numT;
+/* 拡大中に、ホイールや↑↓で資料の中を動く（ページの端より先へは行かない）。動けたら true */
+function panZoom(dx, dy){
+  const z = S.zoom; if (!z || !S.css) return false;
+  const lim = (c, view, size) => { const hv = view / (2 * z.z * size); return hv >= .5 ? [.5, .5] : [hv, 1 - hv]; };
+  const [x0, x1] = lim(z.cx, stage.clientWidth, S.css.w), [y0, y1] = lim(z.cy, stage.clientHeight, S.css.h);
+  const cx = Math.max(x0, Math.min(x1, z.cx + dx / (z.z * S.css.w))), cy = Math.max(y0, Math.min(y1, z.cy + dy / (z.z * S.css.h)));
+  if (Math.abs(cx - z.cx) < 1e-4 && Math.abs(cy - z.cy) < 1e-4) return false;
+  setZoom({ z: z.z, cx, cy }); return true;
+}
 function scrollOrGo(dir){
+  if (S.zoom && panZoom(0, dir * stage.clientHeight * .45)) return;
   if (S.fitW && !S.zoom){
     const max = stage.scrollHeight - stage.clientHeight;
     if (max > 2 && ((dir > 0 && stage.scrollTop < max - 2) || (dir < 0 && stage.scrollTop > 2))){
