@@ -73,6 +73,8 @@ button,input,label.btn{font:inherit;color:inherit}
 #zoomChip .btn{height:28px;border-radius:999px}
 #fixText{position:fixed;z-index:40;display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:min(420px,calc(100vw - 16px));background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:8px;box-shadow:0 6px 22px rgba(0,0,0,.4);font-family:var(--f-body)}
 #fixText[hidden]{display:none}
+#fixText.picking{opacity:.55;pointer-events:none}
+#fixText.picking #fixTextEye{pointer-events:auto}
 #fixTextIn{flex:1 1 150px;min-width:0;height:36px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);font:700 16px var(--f-body);padding:0 10px}
 #fixText .btn{height:32px;border-radius:9px}
 #fixTextFam{height:32px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);font:700 13px var(--f-body);padding:0 6px}
@@ -736,7 +738,7 @@ body.proj{background:#000}
       <canvas id="fx" class="c-nav" aria-label="スライド"></canvas>
     </div>
     <button id="stageBig" type="button" aria-pressed="false" title="映っているところを広げる（ツール以外いっぱいに）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
-    <div id="fixText" hidden role="group" aria-label="塗った所に文字を入れる"><input id="fixTextIn" type="text" maxlength="40" autocomplete="off" placeholder="書きかえる文字" aria-label="書きかえる文字"><select id="fixTextFam" aria-label="文字の種類" title="文字の種類（自動で近いものを選びます）"><option value="g">ゴシック</option><option value="m">明朝</option><option value="r">丸ゴシック</option></select><button class="btn" id="fixTextSm" type="button" title="文字を小さく">A−</button><button class="btn" id="fixTextLg" type="button" title="文字を大きく">A＋</button><button class="btn" id="fixTextBold" type="button" aria-pressed="false" title="太字にする"><b>B</b></button><button class="btn" id="fixTextOk" type="button" title="決める（Enter）">決める</button><span class="fixHint">Enter：決める　Esc：文字なし</span></div>
+    <div id="fixText" hidden role="group" aria-label="塗った所に文字を入れる"><input id="fixTextIn" type="text" maxlength="40" autocomplete="off" placeholder="書きかえる文字" aria-label="書きかえる文字"><select id="fixTextFam" aria-label="文字の種類" title="文字の種類（自動で近いものを選びます）"><option value="g">ゴシック</option><option value="m">明朝</option><option value="r">丸ゴシック</option></select><button class="btn" id="fixTextSm" type="button" title="文字を小さく">A−</button><button class="btn" id="fixTextLg" type="button" title="文字を大きく">A＋</button><button class="btn" id="fixTextBold" type="button" aria-pressed="false" title="太字にする"><b>B</b></button><button class="btn" id="fixTextEye" type="button" aria-pressed="false" title="スライド上の文字をクリックして、その大きさ・色・フォントに合わせる">ここと同じ</button><button class="btn" id="fixTextOk" type="button" title="決める（Enter）">決める</button><span class="fixHint">Enter：決める　Esc：文字なし</span></div>
     <div id="zoomChip" hidden><span id="zoomLbl">拡大中</span><button class="btn" id="zoomOut">元に戻す（Esc）</button></div>
     <div id="loading" hidden>読み込み中…</div>
     <div id="black" hidden><span>もう一度押すか Esc で戻ります</span></div>
@@ -3850,7 +3852,9 @@ function openFixEdit(st, orig, again){
   const bar = $('#fixText'), inp = $('#fixTextIn'); $('#fixTextBold').setAttribute('aria-pressed', String(!!st.tb)); $('#fixTextFam').value = st.tf || 'g'; bar.hidden = false; inp.value = orig || '';
   placeFixEdit(); setTimeout(() => { if (fixEdit && fixEdit.st === st){ inp.focus(); inp.select(); } }, 30);
 }
-function closeFixEdit(){ fixEdit = null; const bar = $('#fixText'); if (bar) bar.hidden = true; }
+function fixEyeUI(){ const on = !!(fixEdit && fixEdit.pick); $('#fixTextEye').setAttribute('aria-pressed', String(on)); $('#fixTextEye').textContent = on ? '文字をクリック…' : 'ここと同じ'; stage.classList.toggle('fixPicking', on); $('#fixText').classList.toggle('picking', on); }
+$('#fixTextEye').onclick = () => { if (fixEdit){ fixEdit.pick = !fixEdit.pick; fixEyeUI(); } };
+function closeFixEdit(){ fixEdit = null; $('#fixText').classList.remove('picking'); stage.classList.remove('fixPicking'); const eb = $('#fixTextEye'); if (eb){ eb.setAttribute('aria-pressed', 'false'); eb.textContent = 'ここと同じ'; } const bar = $('#fixText'); if (bar) bar.hidden = true; }
 function fixEditApply(){
   if (!fixEdit) return;
   if (!strokes().includes(fixEdit.st)){ closeFixEdit(); return; }
@@ -3883,6 +3887,18 @@ function fixUI(){
 $('#fixPick').onclick = () => { S.fixPicking = !S.fixPicking; stage.classList.toggle('fixPicking', S.fixPicking); fixUI(); };
 $('#fixAuto').onclick = () => { S.fixColor = null; S.fixPicking = false; stage.classList.remove('fixPicking'); fixUI(); };
 function onDown(e){
+  if (fixEdit && fixEdit.pick && e.button <= 0 && e.currentTarget === fx){
+    /* 「ここと同じ」：クリックした文字の大きさ・色・フォントを写す */
+    const [px, py] = norm(e), bs = S.text.get(S.page) || [];
+    const b = bs.filter(q => px >= q.x0 && px <= q.x1 && py >= q.top && py <= q.bot).sort((a, c) => (a.x1 - a.x0) - (c.x1 - c.x0))[0];
+    if (b){
+      const st = fixEdit.st, g = fixFontGuess(b);
+      st.ts = b.fs; st.tf = g.fam; st.tb = g.bold; st.tc = fixTextColor({ x0: b.x0, x1: b.x1, y0: b.top, y1: b.bot }, st.color);
+      fixEdit.pick = false; fixEyeUI(); $('#fixTextFam').value = st.tf; $('#fixTextBold').setAttribute('aria-pressed', String(!!st.tb));
+      ensureFont(st.txt || '', st.tf); dirtyInk = true; inkChanged(); $('#fixTextIn').focus();
+    }
+    e.preventDefault(); return;
+  }
   if (fixEdit) closeFixEdit();
   if (e.button > 0) return;
   if (e.currentTarget === fx && !(game && game.on) && e.pointerType !== 'mouse' && app.classList.contains('immersive') && S.tool === 'nav'){
