@@ -135,7 +135,7 @@ details>div{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
 </nav>
 
 <header class="cover" id="top">
-  <div class="band"><span>とりあつかいせつめいしょ</span><span>Ver. 2026.10.22</span></div>
+  <div class="band"><span>とりあつかいせつめいしょ</span><span>Ver. 2026.11.20</span></div>
   <div class="body">
     <div>
       <h1><small>PDFをうつして、ゆびさす</small>ゆびさしスライド</h1>
@@ -204,22 +204,27 @@ details>div{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
     <h3>道具で指す・書く</h3>
     <p>道具はキーで選べます。同じ道具をもう一度押すか <kbd>Esc</kbd> で、ページ送りにもどります。</p>
     <div class="tw"><table class="cmd" style="--st:var(--green)"><thead><tr><th>道具</th><th>キー</th><th>できること</th></tr></thead><tbody>
+      <tr><td>送る</td><td><kbd>Esc</kbd></td><td>道具を持っていない状態。クリックでページを進める・戻す。道具を使い終わったら <kbd>Esc</kbd> で、拡大はそのままで「送る」にもどる。</td></tr>
       <tr><td>レーザー</td><td><kbd>L</kbd></td><td>赤い光がマウスや指を追いかける。</td></tr>
       <tr><td>矢印</td><td><kbd>A</kbd></td><td>大きな矢印で指す。</td></tr>
       <tr><td>マーカー</td><td><kbd>H</kbd></td><td>横になぞると1行、斜めに囲むと範囲の文字をまとめて塗る。</td></tr>
       <tr><td>ペン</td><td><kbd>P</kbd></td><td>自由に書き込む。「数秒で消える」にすると自動で消える。</td></tr>
       <tr><td>消しゴム</td><td><kbd>X</kbd></td><td>なぞった線を、1本ずつ消す。線の一部だけを削る道具ではない。</td></tr>
       <tr><td>スポット</td><td><kbd>S</kbd></td><td>まわりを暗くして、一点を照らす。ホイールで大きさを変える。</td></tr>
-      <tr><td>範囲拡大</td><td><kbd>Z</kbd></td><td>囲んだところを大きくする。<kbd>Esc</kbd> でもどる。</td></tr>
-      <tr><td>修正</td><td><kbd>C</kbd></td><td>囲んだところを背景色で塗って隠す。元のPDFは変わらない。<kbd>Alt</kbd>+クリックで色を指定。</td></tr>
+      <tr><td>範囲拡大</td><td><kbd>Z</kbd></td><td>囲んだところを大きくする。「送る」の状態で <kbd>Esc</kbd> を押すと、もどる。</td></tr>
+      <tr><td>修正</td><td><kbd>C</kbd></td><td>囲んだところを背景色で塗って隠す。すぐ下に出る入力欄で、短い文字を入れ直せる（元の文字の大きさと色に合わせる。「A−」「A＋」で大きさ、「B」で太字。<kbd>Enter</kbd> で決める、<kbd>Esc</kbd> で文字なし）。元のPDFは変わらない。<kbd>Alt</kbd>+クリックで色を指定。</td></tr>
       <tr><td>書き込みを全部消す</td><td><kbd>E</kbd></td><td>このページの書き込みをまとめて消す。</td></tr>
       <tr><td>ひとつ戻す</td><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>最後の書き込みを取り消す。</td></tr>
     </tbody></table></div>
 
+    <div class="memo"><b>「修正」で文字を入れ直すとき</b><br>直したい文字より、少し広めに囲むと、元の文字がきれいに隠れます。入れた文字は、元の大きさと色に合わせますが、フォントは元と少し違って見えます（BIZ UDPGothicで入ります）。スキャンしたPDFなど、文字の情報がないPDFでは、入力欄が空で始まり、大きさは囲んだ高さから決まります。</div>
+
     <h3>拡大して見せる・画面を切り替える</h3>
     <div class="tw"><table class="cmd" style="--st:var(--green)"><thead><tr><th>したいこと</th><th>キー</th><th>やり方</th></tr></thead><tbody>
-      <tr><td>拡大・縮小</td><td><kbd>Ctrl</kbd>+ホイール</td><td>ポインターの位置が中心になる。<kbd>Esc</kbd> でもどる。</td></tr>
+      <tr><td>拡大・縮小</td><td><kbd>Ctrl</kbd>+ホイール</td><td>ポインターの位置が中心になる。「送る」の状態で <kbd>Esc</kbd> を押すと、もどる。</td></tr>
       <tr><td>拡大したあとの移動</td><td>ドラッグ</td><td>「送る」の状態で、つかんでぐいっと動かす。</td></tr>
+      <tr><td>拡大中の上下の移動</td><td>ホイール <kbd>↑</kbd> <kbd>↓</kbd></td><td>拡大したまま、資料の中を上下に動く。一番下で <kbd>↓</kbd> をもう一度押すと、次のページの頭へ進む。</td></tr>
+      <tr><td>拡大したままのページ送り</td><td><kbd>←</kbd> <kbd>→</kbd></td><td>倍率と横の位置はそのまま、縦だけ次のページの頭から表示される。</td></tr>
       <tr><td>全画面</td><td><kbd>F</kbd></td><td>ブラウザの枠が消えて、画面いっぱいになる。</td></tr>
       <tr><td>黒画面／白画面</td><td><kbd>B</kbd> <kbd>W</kbd></td><td>もう一度押すか、画面をクリックするともどる。</td></tr>
       <tr><td>ページ一覧</td><td><kbd>G</kbd></td><td>サムネイルから選んで飛ぶ。</td></tr>
@@ -260,7 +265,7 @@ details>div{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
       <tr><td>緑の枠「スクリーンに映っているところ」</td><td>その枠の中が、そのままスクリーンに映る。ペン、レーザー、拡大も映る。</td></tr>
       <tr><td>下のサムネイルの帯</td><td>全ページが並ぶ。「いま映してる」「次」「その次」の札がつく。左端の丸いボタンで、緑とピンクの枠の色を切り替えられる。</td></tr>
       <tr><td>サムネイルをクリック（長押しも同じ）</td><td>右に「手元だけ」の拡大が出る。<b>この時点ではスクリーンに映らない。</b>確認のための機能。</td></tr>
-      <tr><td>右の「これを映す」ボタン、または <kbd>Enter</kbd></td><td>確認していたページを、スクリーンに映す。映すのは、これを押したときだけ。</td></tr>
+      <tr><td>右の「これを映す」ボタン、<kbd>Enter</kbd>、またはサムネイルのダブルクリック</td><td>ページをスクリーンに映す。ダブルクリックなら、確認を飛ばしてすぐ映る。映すのは、これらをしたときだけ。</td></tr>
       <tr><td>「前」「次」（右のプレビュー内）</td><td>確認するページを切り替える。映るページは変わらない。</td></tr>
       <tr><td>枠の右上の四角いボタン</td><td>映っているところを広げる。ツールと下のページ送り以外が、すべて映っているところになる。もう一度押すともどる。</td></tr>
     </tbody></table></div>
@@ -355,7 +360,7 @@ details>div{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
       <tr><td>投影用の窓が開かない</td><td>ブラウザのポップアップを許可して、もう一度押す。</td></tr>
       <tr><td>充電をつないだら、画面が複製にもどって重くなった</td><td>ハブ経由だったときに起きた。先に充電をつないでから、ディスプレイをつなぐ。もどったときは、<kbd>Ctrl</kbd>+<kbd>全画面キー</kbd>で拡張にもどす。（原因は未確定）</td></tr>
       <tr><td>投影用の窓が、スクリーンにうつらない</td><td><kbd>Win</kbd>+<kbd>P</kbd> で「拡張」になっているか確かめる（Chromebookは <kbd>Ctrl</kbd>+<kbd>全画面キー</kbd>）。充電や機器をつないだ拍子に「複製」にもどることがあるので、もう一度確かめる。窓をスクリーン側へドラッグして、<kbd>F</kbd> で全画面にする。</td></tr>
-      <tr><td>サムネイルを押したのに、スクリーンが変わらない</td><td>サムネイルは確認用。「これを映す」か <kbd>Enter</kbd> を押したときだけ映る。</td></tr>
+      <tr><td>サムネイルを押したのに、スクリーンが変わらない</td><td>1回クリックは確認用。「これを映す」か <kbd>Enter</kbd> を押したとき、またはダブルクリックしたときだけ映る。</td></tr>
       <tr><td>画面が真っ黒になった</td><td>「黒画面」になっている。画面をクリックするか <kbd>Esc</kbd> でもどる。</td></tr>
       <tr><td>QRを読んでもつながらない</td><td>両方の端末がネットにつながっているか確かめて、もう一度読む。</td></tr>
       <tr><td>「ちがうPDF」と出る</td><td>「いまの PDFを あいてに おくる」で送り直す。両方で開く場合は、ファイル名をそろえる。</td></tr>
